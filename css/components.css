@@ -1,0 +1,740 @@
+/* ==========================================================================
+   KrishiSetu - Component Styling (Pastel Green & 3-Space Lifecycle)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. 3 Distinct Spaces Payment & Procurement Lifecycle Layout
+   -------------------------------------------------------------------------- */
+.payment-spaces-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.payment-space-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-xs);
+  position: relative;
+}
+
+.payment-space-card.active {
+  border-color: var(--color-primary-border);
+  background: var(--color-primary-soft);
+}
+
+.space-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 0.5rem;
+}
+
+.space-number-tag {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.space-title {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.space-metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.8rem;
+  margin-bottom: 0.4rem;
+}
+
+.space-metric-row .label {
+  color: var(--text-muted);
+}
+
+.space-metric-row .val {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* 4-Stage Stepper */
+.lifecycle-stepper-container {
+  padding: 1rem 0;
+}
+
+.lifecycle-stepper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  position: relative;
+}
+
+.lifecycle-stepper::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  height: 2px;
+  background: var(--border-subtle);
+  z-index: 1;
+}
+
+.stepper-progress-bar {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  height: 2px;
+  background: var(--color-primary);
+  z-index: 2;
+  transition: width 0.4s ease;
+}
+
+.step-item {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+}
+
+.step-node {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 2px solid var(--border-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  transition: var(--transition-fast);
+  margin-bottom: 0.5rem;
+}
+
+.step-item.completed .step-node {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.step-item.active .step-node {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.step-title {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 0.15rem;
+}
+
+.step-item.completed .step-title,
+.step-item.active .step-title {
+  color: var(--text-main);
+}
+
+.step-time {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+
+/* --------------------------------------------------------------------------
+   2. Clean Digital Pass Card
+   -------------------------------------------------------------------------- */
+.digital-pass-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.pass-header {
+  background: var(--color-primary-soft);
+  border-bottom: 1px solid var(--color-primary-border);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pass-header h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.pass-token-badge {
+  background: var(--bg-surface);
+  border: 1px solid var(--color-primary-border);
+  color: var(--color-primary);
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.pass-body {
+  padding: 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+.pass-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
+}
+
+.pass-detail-item .label {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+.pass-detail-item .val {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.pass-qr-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #ffffff;
+  padding: 0.5rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.pass-qr-box .qr-ref {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-top: 0.35rem;
+}
+
+.pass-footer {
+  background: var(--bg-surface-subtle);
+  border-top: 1px dashed var(--border-medium);
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* --------------------------------------------------------------------------
+   3. Digital Weighbridge Terminal Widget
+   -------------------------------------------------------------------------- */
+.weighbridge-terminal {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+}
+
+.scale-digital-display {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.25rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.scale-value-huge {
+  font-family: var(--font-mono);
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: 0.02em;
+}
+
+.scale-unit {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+.weight-math-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.weight-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  text-align: center;
+}
+
+.weight-box.highlight {
+  border-color: var(--color-primary-border);
+  background: var(--color-primary-soft);
+}
+
+.weight-box .w-title {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.weight-box .w-val {
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* Moisture Meter & Quality Grading */
+.moisture-meter-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.moisture-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.65rem 0;
+}
+
+.moisture-reading-badge {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface-subtle);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+}
+
+.moisture-reading-badge.safe {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  border-color: var(--color-primary-border);
+}
+
+.moisture-reading-badge.warning {
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+  border-color: var(--color-accent-border);
+}
+
+.grade-selector-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+}
+
+.grade-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  padding: 0.65rem;
+  cursor: pointer;
+  text-align: center;
+  transition: var(--transition-fast);
+}
+
+.grade-btn:hover {
+  border-color: var(--border-strong);
+}
+
+.grade-btn.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.grade-btn .grade-letter {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.grade-btn .grade-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   4. Live Yard TV Display
+   -------------------------------------------------------------------------- */
+.yard-tv-screen {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.tv-broadcast-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.tv-grid-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+.tv-serving-counter-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.tv-counter-card {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  transition: var(--transition-fast);
+}
+
+.tv-counter-card.active-calling {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.tv-counter-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.tv-token-number-giant {
+  font-family: var(--font-display);
+  font-size: 2.75rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  line-height: 1.1;
+  margin-bottom: 0.35rem;
+}
+
+.tv-token-farmer {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.tv-queue-sidebar {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+}
+
+.tv-queue-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.85rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.5rem;
+}
+
+.tv-queue-item .t-token {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-primary);
+}
+
+/* --------------------------------------------------------------------------
+   5. Feature Phone (USSD & SMS Simulator)
+   -------------------------------------------------------------------------- */
+.feature-phone-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem 0;
+}
+
+.nokia-phone-body {
+  width: 300px;
+  background: #28302b;
+  border: 3px solid #3d4a41;
+  border-radius: 28px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.phone-speaker-grill {
+  width: 48px;
+  height: 4px;
+  background: #18201a;
+  border-radius: var(--radius-full);
+  margin: 0 auto;
+}
+
+.nokia-screen {
+  background: #88a594;
+  color: #122419;
+  border: 2px solid #18201a;
+  border-radius: var(--radius-sm);
+  padding: 0.85rem;
+  min-height: 190px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.ussd-menu-content {
+  font-weight: 600;
+  white-space: pre-line;
+}
+
+.nokia-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45rem;
+}
+
+.phone-key {
+  background: #38453c;
+  border: 1px solid #4a5a4e;
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.4rem;
+  text-align: center;
+  color: #ffffff;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: var(--transition-fast);
+}
+
+.phone-key:active {
+  background: #202a23;
+}
+
+.phone-key.key-call {
+  background: #3e6b52;
+}
+
+.phone-key.key-end {
+  background: #8b3e3e;
+}
+
+/* --------------------------------------------------------------------------
+   6. Crop Cards & Capacity Bars
+   -------------------------------------------------------------------------- */
+.crops-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.crop-card-item {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-align: left;
+}
+
+.crop-card-item:hover {
+  border-color: var(--color-primary);
+}
+
+.crop-card-item.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.crop-card-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.2rem;
+  color: var(--text-main);
+}
+
+.crop-msp-pill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  border: 1px solid var(--color-accent-border);
+}
+
+.capacity-slot-bar-wrapper {
+  background: var(--border-subtle);
+  border-radius: var(--radius-full);
+  height: 6px;
+  overflow: hidden;
+  margin: 0.35rem 0;
+}
+
+.capacity-slot-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  transition: width 0.3s ease;
+}
+
+.capacity-slot-bar-fill.warning {
+  background: var(--color-warning);
+}
+
+/* Emergency & Delay Console Styling */
+.emergency-templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.pulsating-alert-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  display: inline-block;
+  box-shadow: 0 0 0 0 rgba(197, 61, 61, 0.7);
+  animation: pulse-emergency 1.5s infinite;
+}
+
+@keyframes pulse-emergency {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(197, 61, 61, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(197, 61, 61, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(197, 61, 61, 0);
+  }
+}
+
+.emergency-farmer-banner {
+  background: #fdf3ea;
+  border: 1.5px solid #e09f58;
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1.25rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: var(--shadow-xs);
+}
+
+.emergency-farmer-banner.danger {
+  background: #fdf0f0;
+  border-color: #d97777;
+}
+
+.tv-emergency-marquee-bar {
+  background: #912d2d;
+  color: #ffffff;
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  overflow: hidden;
+}
+
+.tv-emergency-marquee-text {
+  flex: 1;
+  white-space: nowrap;
+  animation: marquee-scroll 18s linear infinite;
+}
+
+@keyframes marquee-scroll {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+@media (max-width: 900px) {
+  .payment-spaces-grid {
+    grid-template-columns: 1fr;
+  }
+  .pass-body {
+    grid-template-columns: 1fr;
+  }
+  .tv-grid-layout {
+    grid-template-columns: 1fr;
+  }
+  .tv-serving-counter-cards {
+    grid-template-columns: 1fr;
+  }
+  .weight-math-grid {
+    grid-template-columns: 1fr;
+  }
+  .emergency-templates-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
