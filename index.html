@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KrishiSetu | Smart Agricultural Procurement Platform</title>
+  <meta name="description" content="Agricultural procurement digitization, hourly slot scheduling, live queue management, and transparent DBT payouts.">
+  
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+  <!-- Top Global Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <!-- 3-Bar (Hamburger) Drawer Button for Feature Phone Simulator -->
+        <button class="drawer-toggle-btn" onclick="app.toggleDrawer(true)" title="Open Feature Phone (USSD) Menu" aria-label="Feature Phone Menu">
+          <div class="hamburger-lines">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <span>Feature Phone (USSD)</span>
+        </button>
+
+        <!-- Brand Identity -->
+        <div class="brand-container" onclick="app.setRole('farmer')">
+          <div class="brand-mark">KS</div>
+          <div class="brand-titles">
+            <h1>KrishiSetu</h1>
+            <p data-i18n="tagline">Procurement Digitization & Transparent Payouts</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Header Actions -->
+      <div class="header-actions">
+        <!-- Active User Session Pill -->
+        <div id="header-user-session" class="user-session-pill" style="display: none;"></div>
+
+        <!-- 22-Scheduled Languages Search Trigger Button -->
+        <button id="lang-active-display-btn" class="btn-utility" onclick="app.openLanguageModal()" title="Select Language (22 Indian Languages)">
+          Language: English
+        </button>
+
+        <!-- Network Online/Offline Simulator Toggle -->
+        <div id="network-status-badge" class="badge-clean success" style="cursor: pointer;" title="Toggle Simulated Offline Mode">
+          Online (Synced)
+        </div>
+
+        <!-- Theme Toggle Button -->
+        <button id="theme-toggle-btn" class="btn-utility" title="Toggle Light/Dark Mode">
+          Dark Mode
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Offline Warning Banner -->
+  <div id="global-offline-banner" style="display: none; background: var(--color-warning-soft); color: var(--color-warning); border-bottom: 1px solid var(--color-accent-border); text-align: center; padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600;">
+    Offline Mode Active (PRD Section 5): On-site weighments and gate entries are saved locally and will auto-sync when network returns.
+  </div>
+
+  <!-- Main Application Content -->
+  <main class="main-content">
+
+    <!-- ====================================================================
+         VIEW 0: AUTH / SPLASH SELECTION (Farmer Login vs Official Login)
+         ==================================================================== -->
+    <section id="view-auth" class="auth-container">
+      <div class="auth-header-card">
+        <h2>Smart Agricultural Procurement & Slot Management</h2>
+        <p>Please select your login portal to continue</p>
+      </div>
+
+      <div class="auth-roles-grid">
+        <!-- Farmer Login Card (Numbers Only Validation) -->
+        <div class="auth-card featured">
+          <div>
+            <div class="auth-role-tag">Farmer Access</div>
+            <h3>Farmer Login</h3>
+            <p>Schedule crop delivery slots, view digital passes, track real-time yard queues, and monitor direct DBT bank payouts.</p>
+            
+            <form onsubmit="app.handleFarmerLoginSubmit(event)">
+              <div class="form-group">
+                <label class="form-label">Registered Mobile Number (10 Digits Only)</label>
+                <input type="tel" id="auth-farmer-phone" class="form-input" placeholder="e.g. 9872100412" maxlength="10" value="9872100412" required />
+                <div class="form-field-hint">Numbers only (0-9). Exactly 10 digits required.</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Farmer ID (Optional)</label>
+                <input type="text" id="auth-farmer-id" class="form-input" value="PB-FARM-99402" />
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+                Login as Farmer (Ramesh Singh)
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Official / Admin Login Card (Strict Complete Details Validation) -->
+        <div class="auth-card">
+          <div>
+            <div class="auth-role-tag" style="color: var(--color-secondary);">Official / Yard Access</div>
+            <h3>Official / Admin Login</h3>
+            <p>On-site gate scanner, automated weighbridge operations, quality lab testing, live yard broadcast, and enterprise monitoring.</p>
+            
+            <form onsubmit="app.handleOfficialLoginSubmit(event)">
+              <div class="form-group">
+                <label class="form-label">Official Employee ID *</label>
+                <input type="text" id="auth-officer-id" class="form-input" placeholder="e.g. OFFICER-PB-104" value="OFFICER-PB-104" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Procurement Mandi / Yard Center *</label>
+                <input type="text" id="auth-officer-center" class="form-input" placeholder="e.g. Khanna Central Mandi" value="Khanna Central Grain Mandi" required />
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
+                <div class="form-group">
+                  <label class="form-label">Department *</label>
+                  <input type="text" id="auth-officer-dept" class="form-input" placeholder="e.g. FCI Yard Ops" value="FCI Procurement Wing" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Security PIN *</label>
+                  <input type="password" id="auth-officer-pin" class="form-input" placeholder="PIN" maxlength="6" value="1234" required />
+                </div>
+              </div>
+              <button type="submit" class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;">
+                Verify & Login as Official
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 1: FARMER PORTAL
+         ==================================================================== -->
+    <section id="view-farmer" style="display: none;">
+      <!-- Real-Time Emergency & Delay Mandi Broadcast Banner -->
+      <div id="farmer-emergency-banner" style="display: none;"></div>
+
+      <!-- Farmer Quick Stats & User Profile -->
+      <div class="clean-card" style="background: var(--bg-surface-elevated); margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h2 style="font-family: var(--font-display); font-size: 1.35rem; font-weight: 700;">Farmer Portal: <span id="farmer-profile-name">Ramesh Singh</span></h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Aadhaar: <strong id="farmer-profile-aadhaar">XXXX-XXXX-4821</strong> • Farmer ID: <strong id="farmer-profile-id">PB-FARM-99402</strong> • Account: <strong id="farmer-profile-bank">HDFC Bank (..8921)</strong></p>
+          </div>
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="farmerPortal.openUserSettingsModal('profile')" style="font-size: 0.8rem; font-weight: 600;">
+              User Settings & Sales History
+            </button>
+            <button type="button" class="btn btn-utility btn-sm" onclick="app.logout()" style="font-size: 0.8rem; color: var(--color-danger);">
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 1: Side-by-Side Slot Booking Form Card -->
+      <div class="clean-card" style="margin-bottom: 1.5rem;">
+        <div class="card-header-simple">
+          <div>
+            <div class="card-heading" data-i18n="bookSlot">Book Agricultural Procurement Slot</div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+              Direct-to-mandi quota allocation with automated smallholder priority reservation (&#8804; 100 Quintals)
+            </p>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <span class="badge-clean success">Hourly Throttling</span>
+            <span class="badge-clean priority">&#8804; 100 Qtl Priority</span>
+          </div>
+        </div>
+
+        <form id="farmer-booking-form">
+          <div class="booking-side-by-side-grid">
+            
+            <!-- LEFT COLUMN: Center, Crop, Quantity, Live MSP -->
+            <div class="booking-col-left">
+              <!-- Center Selection -->
+              <div class="form-group">
+                <label class="form-label" data-i18n="centerSelect">Select Procurement Center</label>
+                <select id="farmer-center-select" class="form-select"></select>
+                <div id="center-info-summary" style="background: var(--bg-surface-elevated); padding: 0.75rem; border-radius: var(--radius-md); margin-top: 0.4rem; border: 1px solid var(--border-subtle);"></div>
+              </div>
+
+              <!-- Crop & Quantity -->
+              <div class="form-group">
+                <label class="form-label" data-i18n="cropSelect">Select Crop & Declare Quantity</label>
+                <div id="farmer-crops-grid" class="crops-selection-grid" style="margin-bottom: 0.75rem;"></div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                  <div>
+                    <label class="form-label">Quantity (Quintals)</label>
+                    <input type="number" id="farmer-crop-quantity" class="form-input" value="50" min="5" max="500" step="5" required />
+                  </div>
+                  <div>
+                    <label class="form-label">Vehicle Registration No.</label>
+                    <input type="text" id="farmer-vehicle-no" class="form-input" value="PB 10 CU 4829" placeholder="e.g. PB 10 CU 4829" required />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Live MSP Payout Estimation -->
+              <div style="background: var(--color-primary-soft); border: 1px solid var(--color-primary-border); border-radius: var(--radius-md); padding: 0.75rem;">
+                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Estimated Payout Calculation</div>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.25rem;">
+                  <div>
+                    <span id="calc-crop-qty" style="font-size: 0.85rem; color: var(--text-main);">50 Quintals</span>
+                    <span style="font-size: 0.85rem; color: var(--text-dim);"> @ </span>
+                    <span id="calc-msp-rate" style="font-weight: 600; color: var(--color-accent);">Rs 2,275/Qtl</span>
+                  </div>
+                  <div id="calc-estimated-total" style="font-family: var(--font-mono); font-size: 1.25rem; font-weight: 700; color: var(--color-primary);">Rs 1,13,750</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Date, Priority Notice, Hourly Slots, Submit -->
+            <div class="booking-col-right">
+              <!-- Date Selection -->
+              <div class="form-group">
+                <label class="form-label">Select Preferred Date</label>
+                <input type="date" id="farmer-booking-date" class="form-input" />
+              </div>
+
+              <!-- Hourly Slot Selection -->
+              <div class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                  <label class="form-label" style="margin-bottom: 0;" data-i18n="slotSelect">Select Hourly Arrival Window</label>
+                  <span style="font-size: 0.75rem; color: var(--color-priority); font-weight: 600;">Fast-Track Available</span>
+                </div>
+                <div id="farmer-slots-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;"></div>
+              </div>
+
+              <!-- Priority Information Box -->
+              <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.65rem 0.85rem; margin-bottom: 1rem; font-size: 0.78rem; color: var(--text-muted);">
+                <strong style="color: var(--color-primary);">Priority Rule:</strong> Smallholder lots (&#8804; 100 Qtl) receive fast-track weighbridge allocation to ensure under-20 minute turnaround.
+              </div>
+
+              <!-- Submit Button -->
+              <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 0.95rem;">
+                Confirm Booking & Generate Digital Pass with OTP
+              </button>
+            </div>
+
+          </div>
+        </form>
+      </div>
+
+      <!-- Section 2: 3 Distinct Spaces Payment & Procurement Lifecycle -->
+      <div id="farmer-active-lifecycle-box" style="margin-bottom: 1.5rem;"></div>
+
+      <!-- Section 3: Active Agriculture Procurement Pass & Tokens (AT THE VERY BOTTOM) -->
+      <div id="farmer-active-passes-list"></div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 2: ADMIN & OPERATIONS PORTAL (Yard Manager, TV Display, Analytics)
+         ==================================================================== -->
+    <section id="view-admin" style="display: none;">
+      <!-- Admin Sub Navigation -->
+      <div class="admin-sub-nav">
+        <button class="admin-sub-btn active" data-admin-tab="yard" onclick="app.setAdminSubTab('yard')">
+          Yard Manager
+        </button>
+        <button class="admin-sub-btn" data-admin-tab="tv" onclick="app.setAdminSubTab('tv')">
+          Live Yard TV Display
+        </button>
+        <button class="admin-sub-btn" data-admin-tab="emergency" onclick="app.setAdminSubTab('emergency')">
+          🚨 Emergency & Delay Console
+        </button>
+        <button class="admin-sub-btn" data-admin-tab="analytics" onclick="app.setAdminSubTab('analytics')">
+          Enterprise Analysis
+        </button>
+      </div>
+
+      <!-- Admin Sub-Panel 1: Yard Manager -->
+      <div id="admin-sub-yard" class="admin-sub-panel">
+        <div class="clean-card">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <h3 style="font-family: var(--font-display); font-size: 1.05rem; font-weight: 700;">Digital Gate Arrival Scanner & OTP Verification</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted);">Enter Booking Reference or Gate OTP to issue live sequence token</p>
+            </div>
+
+            <form id="yard-scan-form" style="display: flex; gap: 0.5rem; flex: 1; max-width: 440px;">
+              <input type="text" id="yard-scan-input" class="form-input" placeholder="Pass Ref or OTP (e.g. 8492)" required />
+              <button type="submit" class="btn btn-primary">Check-In</button>
+            </form>
+
+            <div style="display: flex; gap: 0.4rem;">
+              <button class="btn btn-secondary btn-sm" onclick="yardManager.processCheckInScan('8492')">Verify OTP #8492</button>
+              <button class="btn btn-secondary btn-sm" onclick="yardManager.processCheckInScan('KS-2026-PB-08492')">Test Pass #1</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+          <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.6rem;">
+            Live Mandi Queue & Operations Pipeline
+          </div>
+          <div id="yard-pipeline-columns" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.85rem;"></div>
+        </div>
+
+        <div id="yard-weighbridge-terminal-box"></div>
+      </div>
+
+      <!-- Admin Sub-Panel 2: Live Yard TV Display -->
+      <div id="admin-sub-tv" class="admin-sub-panel" style="display: none;">
+        <div id="yard-tv-display-container"></div>
+      </div>
+
+      <!-- Admin Sub-Panel 3: Emergency & Delay Alert Console -->
+      <div id="admin-sub-emergency" class="admin-sub-panel" style="display: none;">
+        <!-- Active Broadcast Live Status -->
+        <div id="emergency-active-status-card" style="margin-bottom: 1.5rem;"></div>
+
+        <!-- Quick Emergency Templates Selector -->
+        <div class="clean-card" style="margin-bottom: 1.5rem;">
+          <div class="card-header-simple">
+            <div>
+              <div class="card-heading">Pre-Configured Emergency & Delay Incident Templates</div>
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem;">
+                Click any standard Mandi incident template to auto-populate the broadcast composer
+              </p>
+            </div>
+            <span class="badge-clean info">Instant Auto-Fill</span>
+          </div>
+
+          <div id="emergency-templates-grid" class="emergency-templates-grid"></div>
+        </div>
+
+        <!-- Custom Admin Emergency Message Composer Form -->
+        <div class="clean-card" style="margin-bottom: 1.5rem;">
+          <div class="card-header-simple">
+            <div>
+              <div class="card-heading">Custom Emergency & Delay Message Composer</div>
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem;">
+                Compose and broadcast high-priority announcements directly to all queued farmers and Mandi displays
+              </p>
+            </div>
+            <span class="badge-clean priority">Multi-Channel Push (SMS + TV + Voice)</span>
+          </div>
+
+          <form id="emergency-broadcast-form">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+              <div class="form-group">
+                <label class="form-label">Incident / Alert Title *</label>
+                <input type="text" id="emergency-title-input" class="form-input" placeholder="e.g. Unscheduled Rainstorm / Scale Line Calibration" required />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Incident Category</label>
+                <select id="emergency-category-select" class="form-select">
+                  <option value="Weather Alert">Weather Alert (Rain / Hail / Storm)</option>
+                  <option value="Equipment Maintenance">Equipment / Weighbridge Maintenance</option>
+                  <option value="Logistics / Traffic">Mandi Gate / Traffic Congestion</option>
+                  <option value="Quality Testing">Grain Moisture & Quality Protocol</option>
+                  <option value="Facility Operations">Facility Operations & Power Backup</option>
+                  <option value="General Advisory">General Mandi Administration Notice</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Alert Severity Level</label>
+                <select id="emergency-severity-select" class="form-select">
+                  <option value="EMERGENCY">CRITICAL EMERGENCY (Red Alert - Pause Unload)</option>
+                  <option value="DELAY" selected>OPERATIONAL DELAY (Amber Notice - Estimated Wait Increase)</option>
+                  <option value="ADVISORY">INFORMATIONAL ADVISORY (Standard Blue Notice)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Estimated Delay Addition (Minutes)</label>
+                <input type="number" id="emergency-delay-input" class="form-input" value="15" min="0" max="240" step="5" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Target Recipient Audience</label>
+                <select id="emergency-target-select" class="form-select">
+                  <option value="ALL_QUEUED" selected>All Currently Queued Farmers (Checked-in & Active Tokens)</option>
+                  <option value="SCHEDULED_TODAY">All Farmers with Booked Slots Today</option>
+                  <option value="ALL_FARMERS">All Registered Farmers in Database</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Mandi Procurement Center</label>
+                <select id="emergency-center-select" class="form-select">
+                  <option value="all" selected>All Procurement Mandis (Global Broadcast)</option>
+                  <option value="center-1">Khanna Central Grain Mandi (Punjab)</option>
+                  <option value="center-2">Karnal Regional Agro Procurement Center (Haryana)</option>
+                  <option value="center-3">Samrala Agro Procurement Yard (Punjab)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Custom Message Body -->
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <label class="form-label" style="margin-bottom: 0;">Custom Admin Alert Message *</label>
+                <span id="emergency-char-count" style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">0 / 250</span>
+              </div>
+              <textarea id="emergency-msg-input" class="form-input" rows="3" style="resize: vertical; font-family: inherit; font-size: 0.9rem;" placeholder="Type custom emergency advisory, diversion instructions, or delay notice to broadcast..." maxlength="250" required></textarea>
+            </div>
+
+            <!-- Broadcast Channels Options -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; padding: 0.75rem; background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+              <div style="display: flex; gap: 1.25rem; flex-wrap: wrap;">
+                <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer;">
+                  <input type="checkbox" id="emergency-send-sms" checked />
+                  <span>Dispatch GSM SMS to Farmers' Phones</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer;">
+                  <input type="checkbox" id="emergency-voice-announce" checked />
+                  <span>Trigger Yard Double-Chime & Voice Announcement</span>
+                </label>
+              </div>
+              <span style="font-size: 0.75rem; color: var(--text-dim);">Multi-Channel Dispatch Enabled</span>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 0.95rem; background: var(--color-danger); border-color: var(--color-danger); color: #fff;">
+              🚨 Broadcast Instant Alert to All Queued Farmers
+            </button>
+          </form>
+        </div>
+
+        <!-- Emergency Broadcast History & Audit Log -->
+        <div class="clean-card">
+          <div class="card-header-simple">
+            <div class="card-heading">Broadcast History & Emergency Incident Archive</div>
+            <span class="badge-clean">Permanent Security Audit Trail</span>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--border-medium); color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase;">
+                  <th style="padding: 0.5rem;">Alert Ref / Time</th>
+                  <th style="padding: 0.5rem;">Incident & Message Body</th>
+                  <th style="padding: 0.5rem;">Severity</th>
+                  <th style="padding: 0.5rem;">Target Scope</th>
+                  <th style="padding: 0.5rem;">Est. Delay</th>
+                  <th style="padding: 0.5rem;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="emergency-history-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Sub-Panel 4: Enterprise Analysis -->
+      <div id="admin-sub-analytics" class="admin-sub-panel" style="display: none;">
+        <div id="analytics-kpis-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;"></div>
+        <div id="regional-centers-table-container"></div>
+        <div id="security-compliance-log"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ====================================================================
+       TOP-LEFT FEATURE PHONE (USSD & SMS) SLIDE-OVER DRAWER
+       ==================================================================== -->
+  <div id="global-drawer-backdrop" class="drawer-backdrop">
+    <div class="slide-drawer">
+      <div class="drawer-header">
+        <div>
+          <h3>Feature Phone (USSD / SMS)</h3>
+          <p style="font-size: 0.75rem; color: var(--text-muted);">Interactive 2G GSM simulation with instant Gate OTP</p>
+        </div>
+        <button class="btn-utility" onclick="app.toggleDrawer(false)" aria-label="Close Drawer">&times;</button>
+      </div>
+
+      <div class="drawer-body">
+        <div class="feature-phone-wrapper">
+          <div class="nokia-phone-body">
+            <div class="phone-speaker-grill"></div>
+            
+            <div class="nokia-screen">
+              <div id="nokia-screen-content"></div>
+            </div>
+
+            <div class="nokia-keypad">
+              <button class="phone-key key-call" onclick="ussdSimulator.pressKey('CALL')">CALL</button>
+              <button class="phone-key" onclick="ussdSimulator.pressKey('0')">0 (Home)</button>
+              <button class="phone-key key-end" onclick="ussdSimulator.pressKey('END')">END</button>
+
+              <button class="phone-key" onclick="ussdSimulator.pressKey('1')">1</button>
+              <button class="phone-key" onclick="ussdSimulator.pressKey('2')">2</button>
+              <button class="phone-key" onclick="ussdSimulator.pressKey('3')">3</button>
+
+              <button class="phone-key" onclick="ussdSimulator.pressKey('4')">4</button>
+              <button class="phone-key" onclick="ussdSimulator.pressKey('5')">5</button>
+              <button class="phone-key" onclick="ussdSimulator.pressKey('6')">6</button>
+
+              <button class="phone-key" onclick="ussdSimulator.pressKey('7')">7</button>
+              <button class="phone-key" onclick="ussdSimulator.pressKey('8')">8</button>
+              <button class="phone-key" onclick="ussdSimulator.pressKey('9')">9</button>
+
+              <button class="phone-key" onclick="ussdSimulator.pressKey('*')">*</button>
+              <button class="phone-key" onclick="ussdSimulator.pressKey('0')">0</button>
+              <button class="phone-key" onclick="ussdSimulator.pressKey('#')">#</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+          <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.6rem;">
+            Automated SMS Triggers Feed (PRD Section 4.4)
+          </div>
+          <div id="sms-triggers-feed"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Modal Overlay -->
+  <div id="global-modal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modal-title" class="modal-title">Modal Title</h3>
+        <button class="modal-close-btn" onclick="app.closeModal()" aria-label="Close modal">&times;</button>
+      </div>
+      <div id="modal-body" class="modal-body">
+        Modal Body Content
+      </div>
+      <div id="modal-footer" class="modal-footer">
+        <button class="btn btn-secondary" onclick="app.closeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Toast Notification Drawer -->
+  <div id="global-toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <div>
+        <strong>KrishiSetu</strong> • Smart Agricultural Procurement & Slot Management
+      </div>
+      <div style="display: flex; gap: 0.5rem;">
+        <span class="badge-clean">TLS 1.3 & AES-256</span>
+        <span class="badge-clean">DBT PFMS Bridge</span>
+        <span class="badge-clean">Offline-Ready</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/farmer.js"></script>
+  <script src="js/yardManager.js"></script>
+  <script src="js/yardDisplay.js"></script>
+  <script src="js/analytics.js"></script>
+  <script src="js/emergencyConsole.js"></script>
+  <script src="js/ussdSimulator.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
