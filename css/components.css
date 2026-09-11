@@ -738,3 +738,65 @@
   }
 }
 
+/* ==========================================================================
+   GradualBlur Component (ReactBits / Ansh Dhanani)
+   ========================================================================== */
+.gradual-blur-container {
+  position: absolute;
+  pointer-events: none;
+  z-index: 15;
+  overflow: hidden;
+  transition: opacity 0.3s ease;
+}
+
+.gradual-blur-container.gradual-blur-bottom {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+}
+
+.gradual-blur-container.gradual-blur-top {
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+}
+
+.gradual-blur-container.gradual-blur-left {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  height: 100%;
+}
+
+.gradual-blur-container.gradual-blur-right {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  height: 100%;
+}
+
+.gradual-blur-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Helper for sections with GradualBlur */
+.gradual-blur-scroll-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.gradual-blur-scroll-content {
+  height: 100%;
+  overflow-y: auto;
+}
+
+

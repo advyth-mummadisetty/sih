@@ -14,6 +14,9 @@ class AppController {
   }
 
   init() {
+    if (typeof cardNav !== 'undefined') {
+      cardNav.init();
+    }
     this.loadSavedSession();
     this.loadLanguage();
     this.bindGlobalEvents();
@@ -28,7 +31,7 @@ class AppController {
     }
 
     this.renderRoleView();
-    console.log('KrishiSetu Platform Initialized in Light Pastel Green.');
+    console.log('KrishiSetu Platform Initialized with Animated CardNav.');
   }
 
   loadSavedSession() {
@@ -42,6 +45,9 @@ class AppController {
       localStorage.setItem('KS_AUTH_ROLE', role);
     } else {
       localStorage.removeItem('KS_AUTH_ROLE');
+    }
+    if (typeof cardNav !== 'undefined') {
+      cardNav.render();
     }
     this.renderRoleView();
   }
@@ -185,6 +191,10 @@ class AppController {
       if (userSessionPill) userSessionPill.style.display = 'none';
     }
 
+    if (typeof GradualBlur !== 'undefined') {
+      setTimeout(() => GradualBlur.initAuto(), 50);
+    }
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -289,10 +299,6 @@ class AppController {
 
   selectLanguage(langCode, nativeName) {
     this.setLanguage(langCode);
-    const triggerBtn = document.getElementById('lang-active-display-btn');
-    if (triggerBtn) {
-      triggerBtn.textContent = nativeName;
-    }
     this.closeModal();
   }
 
@@ -309,23 +315,70 @@ class AppController {
   }
 
   setLanguage(langCode) {
-    this.currentLanguage = langCode;
-    const dict = DICTIONARY[langCode] || DICTIONARY['en'];
+    this.currentLanguage = langCode || 'en';
+    localStorage.setItem('KS_CURRENT_LANG', this.currentLanguage);
+    const dict = (typeof DICTIONARY !== 'undefined' && DICTIONARY[this.currentLanguage]) 
+      ? DICTIONARY[this.currentLanguage] 
+      : (typeof DICTIONARY !== 'undefined' && DICTIONARY['en'] ? DICTIONARY['en'] : {});
 
+    // 1. Translate all text elements with data-i18n
     const elements = document.querySelectorAll('[data-i18n]');
     elements.forEach(el => {
       const key = el.getAttribute('data-i18n');
       if (dict[key]) {
         el.textContent = dict[key];
+      } else if (DICTIONARY && DICTIONARY['en'] && DICTIONARY['en'][key]) {
+        el.textContent = DICTIONARY['en'][key];
       }
     });
 
-    const langObj = SCHEDULED_LANGUAGES.find(l => l.code === langCode);
-    const label = langObj ? `${langObj.nameNative} (${langObj.nameEn})` : langCode.toUpperCase();
-    this.showToast(`Language: ${label}`, 'info');
+    // 2. Translate all placeholder inputs
+    const placeholderEls = document.querySelectorAll('[data-i18n-placeholder]');
+    placeholderEls.forEach(el => {
+      const key = el.getAttribute('data-i18n-placeholder');
+      if (dict[key]) {
+        el.setAttribute('placeholder', dict[key]);
+      } else if (DICTIONARY && DICTIONARY['en'] && DICTIONARY['en'][key]) {
+        el.setAttribute('placeholder', DICTIONARY['en'][key]);
+      }
+    });
+
+    // 3. Translate all titles/tooltips
+    const titleEls = document.querySelectorAll('[data-i18n-title]');
+    titleEls.forEach(el => {
+      const key = el.getAttribute('data-i18n-title');
+      if (dict[key]) {
+        el.setAttribute('title', dict[key]);
+      }
+    });
+
+    // 4. Update html lang attribute
+    document.documentElement.lang = this.currentLanguage;
+
+    // 5. Update Navbar Card
+    if (typeof cardNav !== 'undefined') {
+      cardNav.render();
+    }
+
+    // 6. Update Active Sub views if initialized
+    if (typeof farmerPortal !== 'undefined' && this.currentRole === 'farmer') {
+      farmerPortal.renderFarmerPassesAndLifecycle();
+    }
+    if (typeof yardManager !== 'undefined' && this.currentRole === 'admin') {
+      yardManager.renderYardPipeline();
+    }
+    if (typeof yardDisplay !== 'undefined' && this.currentAdminSubTab === 'tv') {
+      yardDisplay.renderTVDisplay();
+    }
+
+    const langObj = (typeof SCHEDULED_LANGUAGES !== 'undefined') ? SCHEDULED_LANGUAGES.find(l => l.code === this.currentLanguage) : null;
+    const label = langObj ? `${langObj.nameNative} (${langObj.nameEn})` : this.currentLanguage.toUpperCase();
+    this.showToast(`Language switched to ${label}`, 'info');
   }
 
   loadLanguage() {
+    const savedLang = localStorage.getItem('KS_CURRENT_LANG') || 'en';
+    this.currentLanguage = savedLang;
     this.setLanguage(this.currentLanguage);
   }
 

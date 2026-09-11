@@ -11,52 +11,8 @@
 </head>
 <body>
 
-  <!-- Top Global Header -->
-  <header class="app-header">
-    <div class="header-inner">
-      <div class="header-left">
-        <!-- 3-Bar (Hamburger) Drawer Button for Feature Phone Simulator -->
-        <button class="drawer-toggle-btn" onclick="app.toggleDrawer(true)" title="Open Feature Phone (USSD) Menu" aria-label="Feature Phone Menu">
-          <div class="hamburger-lines">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-          <span>Feature Phone (USSD)</span>
-        </button>
-
-        <!-- Brand Identity -->
-        <div class="brand-container" onclick="app.setRole('farmer')">
-          <div class="brand-mark">KS</div>
-          <div class="brand-titles">
-            <h1>KrishiSetu</h1>
-            <p data-i18n="tagline">Procurement Digitization & Transparent Payouts</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Header Actions -->
-      <div class="header-actions">
-        <!-- Active User Session Pill -->
-        <div id="header-user-session" class="user-session-pill" style="display: none;"></div>
-
-        <!-- 22-Scheduled Languages Search Trigger Button -->
-        <button id="lang-active-display-btn" class="btn-utility" onclick="app.openLanguageModal()" title="Select Language (22 Indian Languages)">
-          Language: English
-        </button>
-
-        <!-- Network Online/Offline Simulator Toggle -->
-        <div id="network-status-badge" class="badge-clean success" style="cursor: pointer;" title="Toggle Simulated Offline Mode">
-          Online (Synced)
-        </div>
-
-        <!-- Theme Toggle Button -->
-        <button id="theme-toggle-btn" class="btn-utility" title="Toggle Light/Dark Mode">
-          Dark Mode
-        </button>
-      </div>
-    </div>
-  </header>
+  <!-- Animated CardNav Header (Inspired by React Bits) -->
+  <div id="card-nav-root"></div>
 
   <!-- Offline Warning Banner -->
   <div id="global-offline-banner" style="display: none; background: var(--color-warning-soft); color: var(--color-warning); border-bottom: 1px solid var(--color-accent-border); text-align: center; padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600;">
@@ -71,29 +27,33 @@
          ==================================================================== -->
     <section id="view-auth" class="auth-container">
       <div class="auth-header-card">
-        <h2>Smart Agricultural Procurement & Slot Management</h2>
-        <p>Please select your login portal to continue</p>
+        <div class="auth-logo-badge-container">
+          <img src="assets/krishisetu-logo.jpg" alt="KrishiSetu - Farmer Procurement Portal" class="auth-main-logo" />
+        </div>
+        <h2 data-i18n="appTitle">Smart Agricultural Procurement & Slot Management</h2>
+        <p data-i18n="tagline">Procurement Digitization, Queue Elimination & Transparent Payouts</p>
+        <div class="auth-govt-badge" data-i18n="govtTagline">Government of India • Ministry of Agriculture & Farmers Welfare</div>
       </div>
 
       <div class="auth-roles-grid">
         <!-- Farmer Login Card (Numbers Only Validation) -->
         <div class="auth-card featured">
           <div>
-            <div class="auth-role-tag">Farmer Access</div>
-            <h3>Farmer Login</h3>
-            <p>Schedule crop delivery slots, view digital passes, track real-time yard queues, and monitor direct DBT bank payouts.</p>
+            <div class="auth-role-tag" data-i18n="farmerAccess">Farmer Access</div>
+            <h3 data-i18n="farmerLogin">Farmer Login</h3>
+            <p data-i18n="farmerLoginDesc">Schedule crop delivery slots, view digital passes, track real-time yard queues, and monitor direct DBT bank payouts.</p>
             
             <form onsubmit="app.handleFarmerLoginSubmit(event)">
               <div class="form-group">
-                <label class="form-label">Registered Mobile Number (10 Digits Only)</label>
+                <label class="form-label" data-i18n="registeredMobile">Registered Mobile Number (10 Digits Only)</label>
                 <input type="tel" id="auth-farmer-phone" class="form-input" placeholder="e.g. 9872100412" maxlength="10" value="9872100412" required />
-                <div class="form-field-hint">Numbers only (0-9). Exactly 10 digits required.</div>
+                <div class="form-field-hint" data-i18n="mobileHint">Numbers only (0-9). Exactly 10 digits required.</div>
               </div>
               <div class="form-group">
-                <label class="form-label">Farmer ID (Optional)</label>
+                <label class="form-label" data-i18n="farmerId">Farmer ID (Optional)</label>
                 <input type="text" id="auth-farmer-id" class="form-input" value="PB-FARM-99402" />
               </div>
-              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;" data-i18n="loginFarmerBtn">
                 Login as Farmer (Ramesh Singh)
               </button>
             </form>
@@ -103,30 +63,30 @@
         <!-- Official / Admin Login Card (Strict Complete Details Validation) -->
         <div class="auth-card">
           <div>
-            <div class="auth-role-tag" style="color: var(--color-secondary);">Official / Yard Access</div>
-            <h3>Official / Admin Login</h3>
-            <p>On-site gate scanner, automated weighbridge operations, quality lab testing, live yard broadcast, and enterprise monitoring.</p>
+            <div class="auth-role-tag" style="color: var(--color-secondary);" data-i18n="officialAccess">Official / Yard Access</div>
+            <h3 data-i18n="officialLogin">Official / Admin Login</h3>
+            <p data-i18n="officialLoginDesc">On-site gate scanner, automated weighbridge operations, quality lab testing, live yard broadcast, and enterprise monitoring.</p>
             
             <form onsubmit="app.handleOfficialLoginSubmit(event)">
               <div class="form-group">
-                <label class="form-label">Official Employee ID *</label>
+                <label class="form-label" data-i18n="employeeId">Official Employee ID *</label>
                 <input type="text" id="auth-officer-id" class="form-input" placeholder="e.g. OFFICER-PB-104" value="OFFICER-PB-104" required />
               </div>
               <div class="form-group">
-                <label class="form-label">Procurement Mandi / Yard Center *</label>
+                <label class="form-label" data-i18n="mandiCenter">Procurement Mandi / Yard Center *</label>
                 <input type="text" id="auth-officer-center" class="form-input" placeholder="e.g. Khanna Central Mandi" value="Khanna Central Grain Mandi" required />
               </div>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
                 <div class="form-group">
-                  <label class="form-label">Department *</label>
+                  <label class="form-label" data-i18n="department">Department *</label>
                   <input type="text" id="auth-officer-dept" class="form-input" placeholder="e.g. FCI Yard Ops" value="FCI Procurement Wing" required />
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Security PIN *</label>
+                  <label class="form-label" data-i18n="securityPin">Security PIN *</label>
                   <input type="password" id="auth-officer-pin" class="form-input" placeholder="PIN" maxlength="6" value="1234" required />
                 </div>
               </div>
-              <button type="submit" class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;">
+              <button type="submit" class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;" data-i18n="loginOfficialBtn">
                 Verify & Login as Official
               </button>
             </form>
@@ -146,15 +106,12 @@
       <div class="clean-card" style="background: var(--bg-surface-elevated); margin-bottom: 1.5rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
           <div>
-            <h2 style="font-family: var(--font-display); font-size: 1.35rem; font-weight: 700;">Farmer Portal: <span id="farmer-profile-name">Ramesh Singh</span></h2>
+            <h2 style="font-family: var(--font-display); font-size: 1.35rem; font-weight: 700;"><span data-i18n="roleFarmer">Farmer Portal</span>: <span id="farmer-profile-name">Ramesh Singh</span></h2>
             <p style="font-size: 0.85rem; color: var(--text-muted);">Aadhaar: <strong id="farmer-profile-aadhaar">XXXX-XXXX-4821</strong> • Farmer ID: <strong id="farmer-profile-id">PB-FARM-99402</strong> • Account: <strong id="farmer-profile-bank">HDFC Bank (..8921)</strong></p>
           </div>
           <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-            <button type="button" class="btn btn-secondary btn-sm" onclick="farmerPortal.openUserSettingsModal('profile')" style="font-size: 0.8rem; font-weight: 600;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="farmerPortal.openUserSettingsModal('profile')" style="font-size: 0.8rem; font-weight: 600;" data-i18n="userSettings">
               User Settings & Sales History
-            </button>
-            <button type="button" class="btn btn-utility btn-sm" onclick="app.logout()" style="font-size: 0.8rem; color: var(--color-danger);">
-              Logout
             </button>
           </div>
         </div>
@@ -165,7 +122,7 @@
         <div class="card-header-simple">
           <div>
             <div class="card-heading" data-i18n="bookSlot">Book Agricultural Procurement Slot</div>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" data-i18n="bookSlotDesc">
               Direct-to-mandi quota allocation with automated smallholder priority reservation (&#8804; 100 Quintals)
             </p>
           </div>
@@ -194,11 +151,11 @@
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
                   <div>
-                    <label class="form-label">Quantity (Quintals)</label>
+                    <label class="form-label" data-i18n="quantity">Quantity (Quintals)</label>
                     <input type="number" id="farmer-crop-quantity" class="form-input" value="50" min="5" max="500" step="5" required />
                   </div>
                   <div>
-                    <label class="form-label">Vehicle Registration No.</label>
+                    <label class="form-label" data-i18n="vehicleNo">Vehicle Registration No.</label>
                     <input type="text" id="farmer-vehicle-no" class="form-input" value="PB 10 CU 4829" placeholder="e.g. PB 10 CU 4829" required />
                   </div>
                 </div>
@@ -206,7 +163,7 @@
 
               <!-- Live MSP Payout Estimation -->
               <div style="background: var(--color-primary-soft); border: 1px solid var(--color-primary-border); border-radius: var(--radius-md); padding: 0.75rem;">
-                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Estimated Payout Calculation</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;" data-i18n="estPayout">Estimated Payout Calculation</div>
                 <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.25rem;">
                   <div>
                     <span id="calc-crop-qty" style="font-size: 0.85rem; color: var(--text-main);">50 Quintals</span>
@@ -222,7 +179,7 @@
             <div class="booking-col-right">
               <!-- Date Selection -->
               <div class="form-group">
-                <label class="form-label">Select Preferred Date</label>
+                <label class="form-label" data-i18n="prefDate">Select Preferred Date</label>
                 <input type="date" id="farmer-booking-date" class="form-input" />
               </div>
 
@@ -230,18 +187,18 @@
               <div class="form-group">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
                   <label class="form-label" style="margin-bottom: 0;" data-i18n="slotSelect">Select Hourly Arrival Window</label>
-                  <span style="font-size: 0.75rem; color: var(--color-priority); font-weight: 600;">Fast-Track Available</span>
+                  <span style="font-size: 0.75rem; color: var(--color-priority); font-weight: 600;" data-i18n="fastTrack">Fast-Track Available</span>
                 </div>
                 <div id="farmer-slots-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;"></div>
               </div>
 
               <!-- Priority Information Box -->
-              <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.65rem 0.85rem; margin-bottom: 1rem; font-size: 0.78rem; color: var(--text-muted);">
+              <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.65rem 0.85rem; margin-bottom: 1rem; font-size: 0.78rem; color: var(--text-muted);" data-i18n="priorityRule">
                 <strong style="color: var(--color-primary);">Priority Rule:</strong> Smallholder lots (&#8804; 100 Qtl) receive fast-track weighbridge allocation to ensure under-20 minute turnaround.
               </div>
 
               <!-- Submit Button -->
-              <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 0.95rem;">
+              <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 0.95rem;" data-i18n="confirmBooking">
                 Confirm Booking & Generate Digital Pass with OTP
               </button>
             </div>
@@ -253,6 +210,49 @@
       <!-- Section 2: 3 Distinct Spaces Payment & Procurement Lifecycle -->
       <div id="farmer-active-lifecycle-box" style="margin-bottom: 1.5rem;"></div>
 
+      <!-- Section 2.5: Live Mandi Procurement Intelligence & Advisory (GradualBlur Showcase) -->
+      <section id="farmer-mandi-advisory-section" class="clean-card gradual-blur-scroll-section" style="position: relative; height: 300px; overflow: hidden; margin-bottom: 1.5rem; padding: 0;" data-gradual-blur data-blur-position="bottom" data-blur-height="7rem" data-blur-strength="2.5" data-blur-divs="2" data-blur-curve="bezier" data-blur-exponential="true">
+        <div class="gradual-blur-scroll-content" style="height: 100%; overflow-y: auto; padding: 1.25rem 1.5rem 6rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">
+            <div>
+              <h3 style="font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--text-main);" data-i18n="mandiIntelligence">Live Mandi Procurement Intelligence & Quality Advisories</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem;">Official guidelines, moisture threshold standards, and seasonal MSP rates for direct delivery</p>
+            </div>
+            <span class="badge-clean success">Official Notice</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+            <div style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.85rem;">
+              <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--color-primary); margin-bottom: 0.25rem;">Moisture & FAQ Standards</div>
+              <div style="font-size: 0.85rem; color: var(--text-main); font-weight: 600;">Grain Moisture Limit: &le; 12.0%</div>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Produce within FAQ limits is approved instantly at the weighbridge without drying deduction.</p>
+            </div>
+
+            <div style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.85rem;">
+              <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--color-secondary); margin-bottom: 0.25rem;">DBT Settlement Timeline</div>
+              <div style="font-size: 0.85rem; color: var(--text-main); font-weight: 600;">Direct PFMS Bank Credit: &le; 72 Hours</div>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Aadhaar-linked DBT payouts are processed directly into the farmer's registered bank account.</p>
+            </div>
+
+            <div style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.85rem;">
+              <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--color-priority); margin-bottom: 0.25rem;">Smallholder Priority Line</div>
+              <div style="font-size: 0.85rem; color: var(--text-main); font-weight: 600;">Lots &le; 100 Quintals: Scale Line #1</div>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Fast-track queue turnaround aimed at under 20 minutes from arrival check-in.</p>
+            </div>
+          </div>
+
+          <div style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1rem;">
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">Mandatory Gate & Arrival Protocols</h4>
+            <ul style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; padding-left: 1.25rem; margin: 0;">
+              <li>Keep the 4-digit Digital Gate Pass OTP (or barcode on procurement pass) ready for scanning upon entering the Mandi gate.</li>
+              <li>Tractor-trolleys and mini-trucks must proceed directly to designated holding bays until their token sequence is called over the public address system.</li>
+              <li>Tare weight (empty vehicle weighment) is captured immediately after lot discharge at Weighbridge Outgate #2.</li>
+              <li>In case of sudden weather changes, Mandi yard tarpaulin shelters and emergency sheds will be activated automatically.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <!-- Section 3: Active Agriculture Procurement Pass & Tokens (AT THE VERY BOTTOM) -->
       <div id="farmer-active-passes-list"></div>
     </section>
@@ -263,16 +263,16 @@
     <section id="view-admin" style="display: none;">
       <!-- Admin Sub Navigation -->
       <div class="admin-sub-nav">
-        <button class="admin-sub-btn active" data-admin-tab="yard" onclick="app.setAdminSubTab('yard')">
+        <button class="admin-sub-btn active" data-admin-tab="yard" onclick="app.setAdminSubTab('yard')" data-i18n="roleYard">
           Yard Manager
         </button>
-        <button class="admin-sub-btn" data-admin-tab="tv" onclick="app.setAdminSubTab('tv')">
+        <button class="admin-sub-btn" data-admin-tab="tv" onclick="app.setAdminSubTab('tv')" data-i18n="roleTV">
           Live Yard TV Display
         </button>
-        <button class="admin-sub-btn" data-admin-tab="emergency" onclick="app.setAdminSubTab('emergency')">
-          🚨 Emergency & Delay Console
+        <button class="admin-sub-btn" data-admin-tab="emergency" onclick="app.setAdminSubTab('emergency')" data-i18n="roleEmergency">
+          Emergency & Delay Console
         </button>
-        <button class="admin-sub-btn" data-admin-tab="analytics" onclick="app.setAdminSubTab('analytics')">
+        <button class="admin-sub-btn" data-admin-tab="analytics" onclick="app.setAdminSubTab('analytics')" data-i18n="roleAnalysis">
           Enterprise Analysis
         </button>
       </div>
@@ -282,13 +282,13 @@
         <div class="clean-card">
           <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
             <div>
-              <h3 style="font-family: var(--font-display); font-size: 1.05rem; font-weight: 700;">Digital Gate Arrival Scanner & OTP Verification</h3>
-              <p style="font-size: 0.8rem; color: var(--text-muted);">Enter Booking Reference or Gate OTP to issue live sequence token</p>
+              <h3 style="font-family: var(--font-display); font-size: 1.05rem; font-weight: 700;" data-i18n="gateScanner">Digital Gate Arrival Scanner & OTP Verification</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted);" data-i18n="gateScannerDesc">Enter Booking Reference or Gate OTP to issue live sequence token</p>
             </div>
 
             <form id="yard-scan-form" style="display: flex; gap: 0.5rem; flex: 1; max-width: 440px;">
               <input type="text" id="yard-scan-input" class="form-input" placeholder="Pass Ref or OTP (e.g. 8492)" required />
-              <button type="submit" class="btn btn-primary">Check-In</button>
+              <button type="submit" class="btn btn-primary" data-i18n="checkInBtn">Check-In</button>
             </form>
 
             <div style="display: flex; gap: 0.4rem;">
@@ -299,7 +299,7 @@
         </div>
 
         <div style="margin-bottom: 1.5rem;">
-          <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.6rem;">
+          <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.6rem;" data-i18n="liveQueuePipeline">
             Live Mandi Queue & Operations Pipeline
           </div>
           <div id="yard-pipeline-columns" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.85rem;"></div>
@@ -423,7 +423,7 @@
             </div>
 
             <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 0.95rem; background: var(--color-danger); border-color: var(--color-danger); color: #fff;">
-              🚨 Broadcast Instant Alert to All Queued Farmers
+              Broadcast Instant Alert to All Queued Farmers
             </button>
           </form>
         </div>
@@ -555,6 +555,8 @@
   <!-- Scripts -->
   <script src="js/data.js"></script>
   <script src="js/utils.js"></script>
+  <script src="js/gradualBlur.js"></script>
+  <script src="js/cardNav.js"></script>
   <script src="js/farmer.js"></script>
   <script src="js/yardManager.js"></script>
   <script src="js/yardDisplay.js"></script>

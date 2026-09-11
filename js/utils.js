@@ -474,3 +474,17 @@ function generateTokenNumber(currentCount = 105) {
 function generateOTP() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
+
+// Global Internationalization Translation Helper
+function t(key, fallback = '') {
+  const lang = (typeof app !== 'undefined' && app.currentLanguage) ? app.currentLanguage : (localStorage.getItem('KS_CURRENT_LANG') || 'en');
+  const dict = (typeof DICTIONARY !== 'undefined' && DICTIONARY[lang]) ? DICTIONARY[lang] : (typeof DICTIONARY !== 'undefined' && DICTIONARY['en'] ? DICTIONARY['en'] : {});
+  if (dict && dict[key]) {
+    return dict[key];
+  }
+  if (typeof DICTIONARY !== 'undefined' && DICTIONARY['en'] && DICTIONARY['en'][key]) {
+    return DICTIONARY['en'][key];
+  }
+  return fallback || key;
+}
+

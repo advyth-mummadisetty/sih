@@ -121,6 +121,435 @@ body {
   flex-direction: column;
 }
 
+/* ==========================================================================
+   CardNav Component Styling (React Bits Animated Card Navigation)
+   ========================================================================== */
+#card-nav-root {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+
+.card-nav-wrapper {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+  position: relative;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+[data-theme="dark"] .card-nav-wrapper {
+  background: rgba(26, 33, 28, 0.95);
+}
+
+.card-nav-bar {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.card-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.card-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.card-nav-logo-img {
+  height: 42px;
+  width: auto;
+  max-width: 60px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: #ffffff;
+  padding: 2px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card-nav-brand:hover .card-nav-logo-img {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(27, 46, 33, 0.2);
+}
+
+.card-nav-logo-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #1e3a24, #2d5a38);
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(30, 58, 36, 0.2);
+  transition: transform 0.25s ease;
+}
+
+.card-nav-brand:hover .card-nav-logo-mark {
+  transform: scale(1.05);
+}
+
+.card-nav-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-nav-brand-text .brand-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.card-nav-brand-text .brand-tagline {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.card-nav-center-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--bg-surface-elevated);
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+}
+
+.card-nav-tab-pill {
+  background: transparent;
+  border: none;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: all 0.2s ease;
+}
+
+.card-nav-tab-pill .tab-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.card-nav-tab-pill .tab-arrow {
+  font-size: 0.7rem;
+  opacity: 0.5;
+  transition: transform 0.2s ease;
+}
+
+.card-nav-tab-pill:hover {
+  color: var(--text-main);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-xs);
+}
+
+.card-nav-tab-pill:hover .tab-arrow {
+  transform: translateY(1px);
+  opacity: 1;
+}
+
+.card-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+/* Logout Button in Main Header Bar */
+.btn-logout-nav {
+  color: var(--color-danger, #dc3545) !important;
+  border-color: rgba(220, 53, 69, 0.25) !important;
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 0.42rem 0.8rem;
+  background: var(--bg-surface-elevated);
+  transition: all 0.2s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.btn-logout-nav:hover {
+  background: rgba(220, 53, 69, 0.08) !important;
+  border-color: var(--color-danger, #dc3545) !important;
+  color: var(--color-danger, #dc3545) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Simple 3-Line Menu Symbol Toggle Button */
+.card-nav-menu-btn {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  border-radius: var(--radius-md);
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-xs);
+  transition: all 0.25s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.card-nav-menu-btn:hover {
+  background: var(--bg-surface-subtle);
+  border-color: var(--border-medium);
+  transform: translateY(-1px);
+}
+
+.card-nav-menu-btn.active {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary-border);
+}
+
+.card-nav-menu-btn .hamburger-lines {
+  width: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3.5px;
+}
+
+.card-nav-menu-btn .hamburger-lines span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: var(--text-main);
+  border-radius: 2px;
+  transition: transform 0.3s cubic-bezier(0.215, 0.61, 0.355, 1), opacity 0.2s ease;
+}
+
+.card-nav-menu-btn.active .hamburger-lines span:nth-child(1) {
+  transform: translateY(5.5px) rotate(45deg);
+}
+
+.card-nav-menu-btn.active .hamburger-lines span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.card-nav-menu-btn.active .hamburger-lines span:nth-child(3) {
+  transform: translateY(-5.5px) rotate(-45deg);
+}
+
+/* Expandable Animated Card Deck (power3.out physics) - Compact & Sleek */
+.card-nav-deck {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translateY(-8px);
+  transform-origin: top center;
+  transition: max-height 0.4s cubic-bezier(0.215, 0.61, 0.355, 1),
+              opacity 0.3s ease,
+              transform 0.4s cubic-bezier(0.215, 0.61, 0.355, 1);
+  border-top: 1px solid transparent;
+}
+
+.card-nav-deck.open {
+  max-height: 520px;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  border-top-color: var(--border-subtle);
+}
+
+.card-nav-deck-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0.85rem 1.25rem 1.15rem;
+}
+
+.card-nav-deck-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.65rem;
+}
+
+.card-nav-close-btn {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.card-nav-close-btn:hover {
+  color: var(--text-main);
+  background: var(--bg-surface-elevated);
+}
+
+.card-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.85rem;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.nav-card-item {
+  border-radius: var(--radius-md);
+  padding: 0.95rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  transition: transform 0.35s cubic-bezier(0.215, 0.61, 0.355, 1), box-shadow 0.35s ease;
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.card-nav-deck.open .nav-card-item {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.35s ease calc(var(--card-index) * 0.05s),
+              transform 0.4s cubic-bezier(0.215, 0.61, 0.355, 1) calc(var(--card-index) * 0.05s);
+}
+
+.nav-card-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.nav-card-item.card-highlight {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+  animation: card-pulse 1s ease;
+}
+
+@keyframes card-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.nav-card-top {
+  margin-bottom: 0.65rem;
+}
+
+.nav-card-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(255, 255, 255, 0.18);
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-full);
+  margin-bottom: 0.35rem;
+}
+
+.nav-card-title {
+  font-family: var(--font-display);
+  font-size: 0.96rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+  letter-spacing: -0.01em;
+}
+
+.nav-card-desc {
+  font-size: 0.72rem;
+  opacity: 0.82;
+  line-height: 1.3;
+}
+
+.nav-card-links-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-top: 0.6rem;
+}
+
+.nav-card-link-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.38rem 0.55rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.nav-card-link-item .link-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.nav-card-link-item .link-icon {
+  font-size: 0.85rem;
+}
+
+.nav-card-link-item .link-arrow {
+  font-size: 0.85rem;
+  opacity: 0.5;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.nav-card-link-item:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateX(3px);
+}
+
+.nav-card-link-item:hover .link-arrow {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+@media (max-width: 900px) {
+  .card-nav-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .desktop-only-flex,
+  .desktop-only-text {
+    display: none !important;
+  }
+  .card-nav-grid {
+    grid-template-columns: 1fr;
+  }
+  .card-nav-deck-inner {
+    padding: 0.75rem 1rem;
+  }
+}
+
 /* Header */
 .app-header {
   background: var(--bg-surface);
@@ -276,6 +705,46 @@ body {
 .auth-header-card {
   text-align: center;
   margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-logo-badge-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.auth-main-logo {
+  max-width: 380px;
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(27, 46, 33, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--border-subtle);
+  background: #ffffff;
+  padding: 0.5rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.auth-main-logo:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(27, 46, 33, 0.18), 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.auth-govt-badge {
+  display: inline-block;
+  margin-top: 0.6rem;
+  padding: 0.35rem 0.95rem;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1px solid var(--color-primary-border);
+  letter-spacing: 0.02em;
 }
 
 .auth-header-card h2 {

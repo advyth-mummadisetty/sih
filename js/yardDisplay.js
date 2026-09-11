@@ -58,25 +58,25 @@ class YardDisplay {
         <div class="tv-broadcast-header">
           <div>
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span class="badge-clean success">LIVE YARD BROADCAST</span>
+              <span class="badge-clean success">${t('roleTV', 'LIVE YARD BROADCAST')}</span>
               <h2 style="font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; color: var(--text-main);">
                 ${center.name}
               </h2>
             </div>
             <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
-              Automated Token Calling & Traffic Flow System
+              ${t('tagline', 'Automated Token Calling & Traffic Flow System')}
             </div>
           </div>
 
           <div style="display: flex; align-items: center; gap: 1.25rem;">
             <div style="text-align: right;">
-              <div style="font-size: 0.75rem; color: var(--text-muted);">Average Yard Wait</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">${t('estimatedWait', 'Average Yard Wait')}</div>
               <div style="font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700; color: var(--color-primary);">
                 ${emergencyAlert && emergencyAlert.delayMinutes > 0 ? `${18 + emergencyAlert.delayMinutes} Mins (+${emergencyAlert.delayMinutes}m delay)` : '18 Mins'}
               </div>
             </div>
             <button class="btn btn-secondary btn-sm" onclick="yardDisplay.triggerManualChimeAndAnnouncement()">
-              Chime & Announce Active Token
+              ${t('voiceAnnouncer', 'Chime & Announce Active Token')}
             </button>
           </div>
         </div>
@@ -88,7 +88,7 @@ class YardDisplay {
               ${emergencyAlert.severity}:
             </span>
             <div class="tv-emergency-marquee-text">
-              🚨 ${emergencyAlert.title} — ${emergencyAlert.message} ${emergencyAlert.delayMinutes > 0 ? `(Estimated Processing Delay: +${emergencyAlert.delayMinutes} Mins)` : ''} 🚨
+              Notice: ${emergencyAlert.title} — ${emergencyAlert.message} ${emergencyAlert.delayMinutes > 0 ? `(Estimated Processing Delay: +${emergencyAlert.delayMinutes} Mins)` : ''}
             </div>
           </div>
         ` : ''}
@@ -96,7 +96,7 @@ class YardDisplay {
         <div class="tv-grid-layout">
           <div>
             <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem;">
-              ACTIVE PROCESSING STATIONS
+              ${t('servingNow', 'ACTIVE PROCESSING STATIONS')}
             </div>
 
             <div class="tv-serving-counter-cards">
@@ -121,7 +121,7 @@ class YardDisplay {
 
           <div class="tv-queue-sidebar">
             <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.4rem;">
-              NEXT UP IN QUEUE
+              ${t('nextInQueue', 'NEXT UP IN QUEUE')}
             </div>
 
             <div class="tv-queue-list">

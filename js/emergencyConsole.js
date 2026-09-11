@@ -203,7 +203,7 @@ class EmergencyConsole {
       soundEngine.playEmergencyChime();
     }
 
-    app.showToast(`🚨 Emergency Alert Broadcasted to ${recipientsCount} Farmers!`, 'success');
+    app.showToast(`Emergency Alert Broadcasted to ${recipientsCount} Farmers!`, 'success');
     this.renderActiveAlertStatus();
     this.renderBroadcastHistory();
   }
