@@ -634,11 +634,23 @@
   height: 100%;
   border-radius: var(--radius-full);
   background: var(--color-primary);
-  transition: width 0.3s ease;
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.capacity-slot-bar-fill.success {
+  background: #2e7d32;
 }
 
 .capacity-slot-bar-fill.warning {
-  background: var(--color-warning);
+  background: #d97706;
+}
+
+.capacity-slot-bar-fill.orange {
+  background: #ea580c;
+}
+
+.capacity-slot-bar-fill.danger {
+  background: #dc2626;
 }
 
 /* Emergency & Delay Console Styling */

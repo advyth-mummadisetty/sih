@@ -41,7 +41,9 @@ class FarmerPortal {
       dateInput.value = this.selectedDate;
       dateInput.addEventListener('change', (e) => {
         this.selectedDate = e.target.value;
+        this.renderCenterOptions();
         this.renderSlotTimeOptions();
+        this.updateCenterInfoCard();
       });
     }
 
@@ -75,6 +77,195 @@ class FarmerPortal {
     window.addEventListener('ks-emergency-resolved', () => {
       this.renderFarmerEmergencyBanner();
     });
+  }
+
+  // Dynamic Date and Location Statistics Calculation Engine
+  getCenterStatsForDate(center, dateStr) {
+    if (!center) {
+      return {
+        name: 'Mandi Center',
+        district: 'Punjab',
+        state: 'Punjab',
+        distanceKm: 5.0,
+        dailyCapacityQuintals: 2500,
+        bookedTodayQuintals: 1250,
+        capacityPercent: 50,
+        currentWaitMins: 15,
+        operatingHours: '08:00 AM - 06:00 PM',
+        weighbridgesActive: 3,
+        qualityCounters: 2,
+        formattedDate: dateStr || 'Today'
+      };
+    }
+
+    const actualDate = dateStr || this.selectedDate || new Date().toISOString().split('T')[0];
+    
+    // Deterministic pseudo-random seed per (center.id + actualDate)
+    const seedStr = `${center.id}_${actualDate}_stats_v2`;
+    let hash = 0;
+    for (let i = 0; i < seedStr.length; i++) {
+      hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
+      hash |= 0;
+    }
+    const positiveHash = Math.abs(hash);
+
+    const d = new Date(actualDate);
+    const dayOfWeek = isNaN(d.getDay()) ? 1 : d.getDay(); // 0 = Sun, 6 = Sat
+    const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+
+    // Dynamic base percentage per date: Weekdays (35% - 85%), Weekends (15% - 48%)
+    let basePercent = (positiveHash % 50) + 36;
+    if (isWeekend) {
+      basePercent = Math.max(14, basePercent - 24);
+    }
+
+    const dailyCap = center.dailyCapacityQuintals || 2500;
+    const bookedToday = Math.round((dailyCap * basePercent) / 100);
+    const capacityPercent = Math.min(98, Math.max(12, Math.round((bookedToday / dailyCap) * 100)));
+
+    // Wait time scales with congestion and active weighbridge lanes
+    const lanes = center.weighbridgesActive || 3;
+    let waitMins = Math.round(6 + (capacityPercent / 100) * 32 - (lanes * 2.2));
+    waitMins = Math.max(5, Math.min(42, waitMins));
+
+    // Formatted date string for display
+    let dateLabel = actualDate;
+    try {
+      const parts = actualDate.split('-');
+      if (parts.length === 3) {
+        const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+        dateLabel = dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      }
+    } catch (e) {
+      dateLabel = actualDate;
+    }
+
+    return {
+      name: center.name,
+      district: center.district,
+      state: center.state,
+      distanceKm: center.distanceKm,
+      dailyCapacityQuintals: dailyCap,
+      bookedTodayQuintals: bookedToday,
+      capacityPercent: capacityPercent,
+      currentWaitMins: waitMins,
+      operatingHours: center.operatingHours || '08:00 AM - 06:00 PM',
+      weighbridgesActive: lanes,
+      qualityCounters: center.qualityCounters || 2,
+      facilities: center.facilities || [],
+      formattedDate: dateLabel
+    };
+  }
+
+  // Dynamic Hourly Arrival Window Slot Generation (Per Center + Date)
+  getSlotsForCenterAndDate(center, dateStr) {
+    const centerObj = center || db.getCenterById(this.selectedCenterId) || db.getCenters()[0];
+    const actualDate = dateStr || this.selectedDate || new Date().toISOString().split('T')[0];
+    const opHours = centerObj.operatingHours || '08:00 AM - 06:00 PM';
+
+    let startHour = 8;
+    let endHour = 18;
+
+    if (opHours.includes('06:30 AM') || opHours.includes('07:00 AM') || opHours.includes('07:30 AM')) {
+      startHour = 7;
+    }
+    if (opHours.includes('07:00 PM') || opHours.includes('07:30 PM')) {
+      endHour = 19;
+    } else if (opHours.includes('08:00 PM') || opHours.includes('08:30 PM')) {
+      endHour = 20;
+    }
+
+    const hourlyCap = centerObj.hourlySlotCapacityQuintals || 300;
+    const slots = [];
+
+    const d = new Date(actualDate);
+    const dayOfWeek = isNaN(d.getDay()) ? 1 : d.getDay();
+    const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+
+    for (let h = startHour; h < endHour; h++) {
+      const hNext = h + 1;
+      
+      const formatTime = (hour) => {
+        const period = hour >= 12 ? 'PM' : 'AM';
+        let displayHour = hour % 12;
+        if (displayHour === 0) displayHour = 12;
+        const strHour = displayHour < 10 ? `0${displayHour}` : `${displayHour}`;
+        return `${strHour}:00 ${period}`;
+      };
+
+      const slotTime = `${formatTime(h)} - ${formatTime(hNext)}`;
+
+      // Deterministic seed per date, center, and hour window
+      const slotSeedStr = `${centerObj.id}_${actualDate}_h_${h}_v2`;
+      let slotHash = 0;
+      for (let i = 0; i < slotSeedStr.length; i++) {
+        slotHash = ((slotHash << 5) - slotHash) + slotSeedStr.charCodeAt(i);
+        slotHash |= 0;
+      }
+      const pHash = Math.abs(slotHash);
+
+      // Realistic diurnal traffic distribution curve across the mandi day
+      let hourBias = 0;
+      if (h >= 9 && h <= 11) {
+        hourBias = 26; // Morning rush peak
+      } else if (h === 8) {
+        hourBias = -6; // Early opening
+      } else if (h >= 12 && h <= 13) {
+        hourBias = -16; // Mid-day lull
+      } else if (h >= 14 && h <= 15) {
+        hourBias = 8; // Afternoon delivery wave
+      } else if (h >= 16) {
+        hourBias = -26; // Evening clearout
+      }
+
+      if (isWeekend) {
+        hourBias -= 18;
+      }
+
+      let slotPercent = (pHash % 32) + 38 + hourBias;
+      slotPercent = Math.max(8, Math.min(97, slotPercent));
+
+      const bookedQtl = Math.round((hourlyCap * slotPercent) / 100);
+      
+      let status = 'Moderate';
+      let isFastTrack = false;
+      let statusClass = 'warning';
+
+      if (slotPercent <= 35) {
+        status = 'Fast Track';
+        isFastTrack = true;
+        statusClass = 'success';
+      } else if (slotPercent <= 52) {
+        status = 'Low Congestion';
+        isFastTrack = true;
+        statusClass = 'success';
+      } else if (slotPercent <= 74) {
+        status = 'Moderate';
+        isFastTrack = false;
+        statusClass = 'warning';
+      } else if (slotPercent <= 89) {
+        status = 'Peak Surge';
+        isFastTrack = false;
+        statusClass = 'orange';
+      } else {
+        status = 'Almost Full';
+        isFastTrack = false;
+        statusClass = 'danger';
+      }
+
+      slots.push({
+        time: slotTime,
+        booked: bookedQtl,
+        cap: hourlyCap,
+        percent: slotPercent,
+        status: status,
+        isFastTrack: isFastTrack,
+        statusClass: statusClass,
+        isFull: slotPercent >= 98
+      });
+    }
+
+    return slots;
   }
 
   renderFarmerEmergencyBanner() {
@@ -123,38 +314,49 @@ class FarmerPortal {
     const select = document.getElementById('farmer-center-select');
     if (!select) return;
 
-    select.innerHTML = centers.map(c => `
-      <option value="${c.id}" ${c.id === this.selectedCenterId ? 'selected' : ''}>
-        ${c.name} (${c.district}, ${c.state}) - ${c.distanceKm} km [Wait: ~${c.currentWaitMins}m]
-      </option>
-    `).join('');
+    select.innerHTML = centers.map(c => {
+      const stats = this.getCenterStatsForDate(c, this.selectedDate);
+      return `
+        <option value="${c.id}" ${c.id === this.selectedCenterId ? 'selected' : ''}>
+          ${c.name} (${c.district}, ${c.state}) - ${c.distanceKm} km [Wait: ~${stats.currentWaitMins}m • ${stats.capacityPercent}% Booked]
+        </option>
+      `;
+    }).join('');
 
     this.updateCenterInfoCard();
   }
 
   updateCenterInfoCard() {
-    const center = db.getCenterById(this.selectedCenterId);
+    const center = db.getCenterById(this.selectedCenterId) || db.getCenters()[0];
     const infoBox = document.getElementById('center-info-summary');
     if (!center || !infoBox) return;
 
-    const capacityPercent = Math.min(100, Math.round((center.currentBookedTodayQuintals / center.dailyCapacityQuintals) * 100));
-    const isHighCrowd = capacityPercent >= 70;
-    const statusClass = capacityPercent > 80 ? 'danger' : (capacityPercent > 50 ? 'warning' : '');
+    const stats = this.getCenterStatsForDate(center, this.selectedDate);
+    const capacityPercent = stats.capacityPercent;
+    const statusClass = capacityPercent > 80 ? 'danger' : (capacityPercent > 55 ? 'warning' : 'success');
 
     infoBox.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">${center.name}</span>
-        <span class="badge-clean">${center.operatingHours}</span>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; flex-wrap: wrap; gap: 0.3rem;">
+        <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-main);">${stats.name}</span>
+        <div style="display: flex; gap: 0.35rem;">
+          <span class="badge-clean" style="font-size: 0.72rem;">📅 ${stats.formattedDate}</span>
+          <span class="badge-clean" style="font-size: 0.72rem;">⏰ ${stats.operatingHours}</span>
+        </div>
       </div>
-      <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem;">
-        <span>Daily Capacity: ${center.dailyCapacityQuintals} Qtl</span>
-        <span>${capacityPercent}% Booked (${center.currentBookedTodayQuintals} Qtl)</span>
+      <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: var(--text-muted); margin-bottom: 0.25rem;">
+        <span>Daily Mandi Capacity: <strong>${stats.dailyCapacityQuintals.toLocaleString('en-IN')} Qtl</strong></span>
+        <span><strong style="color: ${capacityPercent > 80 ? 'var(--color-danger)' : 'var(--color-primary)'};">${capacityPercent}% Booked</strong> (${stats.bookedTodayQuintals.toLocaleString('en-IN')} Qtl)</span>
       </div>
       <div class="capacity-slot-bar-wrapper">
-        <div class="capacity-slot-bar-fill ${statusClass}" style="width: ${capacityPercent}%"></div>
+        <div class="capacity-slot-bar-fill ${statusClass}" style="width: ${capacityPercent}%;"></div>
       </div>
-      <div style="font-size: 0.75rem; color: var(--color-priority); font-weight: 600; margin-top: 0.35rem;">
-        Priority Rule: Batches &lt;= 100 Qtl receive automatic Priority Fast-Track allocation.
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.45rem; font-size: 0.74rem;">
+        <span style="color: var(--text-main); font-weight: 600;">
+          ⏱️ Gate Wait: <strong style="color: ${stats.currentWaitMins > 20 ? 'var(--color-warning)' : 'var(--color-success)'};">~${stats.currentWaitMins} mins</strong> • ${stats.weighbridgesActive} Automated Lanes • ${stats.qualityCounters} Lab Bays
+        </span>
+        <span style="color: var(--color-primary); font-weight: 700; background: var(--color-primary-soft); padding: 0.1rem 0.4rem; border-radius: 4px;">
+          ⚡ Priority &le; 100 Qtl Active
+        </span>
       </div>
     `;
   }
@@ -183,32 +385,53 @@ class FarmerPortal {
     const container = document.getElementById('farmer-slots-grid');
     if (!container) return;
 
-    const slots = [
-      { time: '08:00 AM - 09:00 AM', booked: 180, cap: 300, status: 'Fast Track' },
-      { time: '09:00 AM - 10:00 AM', booked: 290, cap: 300, status: 'Almost Full' },
-      { time: '10:00 AM - 11:00 AM', booked: 140, cap: 300, status: 'Low Congestion' },
-      { time: '11:00 AM - 12:00 PM', booked: 90, cap: 300, status: 'Low Congestion' },
-      { time: '01:00 PM - 02:00 PM', booked: 210, cap: 300, status: 'Moderate' },
-      { time: '02:00 PM - 03:00 PM', booked: 110, cap: 300, status: 'Low Congestion' },
-      { time: '03:00 PM - 04:00 PM', booked: 60, cap: 300, status: 'Fast Track' },
-      { time: '04:00 PM - 05:00 PM', booked: 40, cap: 300, status: 'Fast Track' }
-    ];
+    const center = db.getCenterById(this.selectedCenterId) || db.getCenters()[0];
+    const slots = this.getSlotsForCenterAndDate(center, this.selectedDate);
+
+    // Count Fast-Track slots (< 50% full)
+    const fastTrackSlots = slots.filter(s => s.isFastTrack && !s.isFull);
+    const fastTrackCount = fastTrackSlots.length;
+
+    // Update Top Header Indicator
+    const badgeEl = document.getElementById('farmer-fasttrack-badge');
+    if (badgeEl) {
+      if (fastTrackCount > 0) {
+        badgeEl.innerHTML = `⚡ ${fastTrackCount} Fast-Track Slots Available`;
+        badgeEl.style.background = 'var(--color-primary-soft)';
+        badgeEl.style.color = 'var(--color-primary)';
+        badgeEl.style.borderColor = 'var(--color-primary-border)';
+      } else {
+        badgeEl.innerHTML = `⚠️ Peak Harvest Demand`;
+        badgeEl.style.background = 'var(--color-warning-soft)';
+        badgeEl.style.color = 'var(--color-warning)';
+        badgeEl.style.borderColor = 'var(--color-accent-border)';
+      }
+    }
+
+    // Ensure selected slot is valid in current list
+    const validSlotExists = slots.some(s => s.time === this.selectedSlot);
+    if (!validSlotExists && slots.length > 0) {
+      const recommendedSlot = fastTrackSlots[0] || slots[0];
+      this.selectedSlot = recommendedSlot.time;
+    }
 
     container.innerHTML = slots.map(slot => {
       const isSelected = slot.time === this.selectedSlot;
-      const percent = Math.round((slot.booked / slot.cap) * 100);
-      const isFull = slot.booked >= slot.cap;
-      const statusClass = percent > 85 ? 'danger' : (percent > 60 ? 'warning' : '');
+      const isFull = slot.isFull;
 
       return `
-        <div class="crop-card-item ${isSelected ? 'selected' : ''}" style="${isFull ? 'opacity: 0.5; pointer-events: none;' : ''}" 
+        <div class="crop-card-item ${isSelected ? 'selected' : ''}" style="${isFull ? 'opacity: 0.45; pointer-events: none;' : ''}" 
              onclick="farmerPortal.selectSlot('${slot.time}')">
-          <div style="font-weight: 600; font-size: 0.85rem; color: var(--text-main); margin-bottom: 0.2rem;">${slot.time}</div>
-          <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem;">
-            ${slot.status} (${percent}% full)
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
+            <span style="font-weight: 700; font-size: 0.85rem; color: var(--text-main);">${slot.time}</span>
+            ${slot.isFastTrack ? '<span style="font-size: 0.68rem; font-weight: 700; color: #15803d; background: #dcfce7; padding: 0.1rem 0.35rem; border-radius: 4px;">⚡ Fast Track</span>' : ''}
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.74rem; color: var(--text-muted); margin-bottom: 0.25rem;">
+            <span>${slot.status}</span>
+            <span><strong>${slot.percent}%</strong> full (${slot.booked} Qtl)</span>
           </div>
           <div class="capacity-slot-bar-wrapper">
-            <div class="capacity-slot-bar-fill ${statusClass}" style="width: ${percent}%;"></div>
+            <div class="capacity-slot-bar-fill ${slot.statusClass}" style="width: ${slot.percent}%;"></div>
           </div>
         </div>
       `;
