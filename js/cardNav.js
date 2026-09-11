@@ -112,7 +112,7 @@ class CardNavComponent {
           <div class="card-nav-bar">
             <div class="card-nav-left">
               <div class="card-nav-brand" onclick="cardNav.handleAction('home')">
-                <img src="assets/krishisetu-logo.jpg" alt="KrishiSetu Logo" class="card-nav-logo-img" />
+                <img src="assets/krishisetu-logo.png" alt="KrishiSetu Logo" class="card-nav-logo-img" />
                 <div class="card-nav-brand-text">
                   <span class="brand-title">KrishiSetu</span>
                   <span class="brand-tagline">${t('govtTagline', 'Government of India • Ministry of Agriculture')}</span>
@@ -156,7 +156,7 @@ class CardNavComponent {
 
             <!-- Brand Logo & Identity -->
             <div class="card-nav-brand" onclick="cardNav.handleAction('home')">
-              <img src="assets/krishisetu-logo.jpg" alt="KrishiSetu Logo" class="card-nav-logo-img" />
+              <img src="assets/krishisetu-logo.png" alt="KrishiSetu Logo" class="card-nav-logo-img" />
               <div class="card-nav-brand-text">
                 <span class="brand-title">KrishiSetu</span>
                 <span class="brand-tagline">
