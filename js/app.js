@@ -11,6 +11,7 @@ class AppController {
     this.isOffline = false;
     this.isDrawerOpen = false;
     this.theme = 'light';
+    this.generatedFarmerOtp = null;
   }
 
   init() {
@@ -52,11 +53,53 @@ class AppController {
     this.renderRoleView();
   }
 
-  // Strict Numeric Validation for Farmer Login
+  // 1. Farmer Login OTP Generation
+  handleFarmerGetOtp() {
+    const phoneInput = document.getElementById('auth-farmer-phone');
+    const phoneVal = phoneInput ? phoneInput.value.trim() : '';
+    const digitsOnly = phoneVal.replace(/\D/g, '');
+
+    if (digitsOnly.length !== 10) {
+      if (phoneInput) phoneInput.classList.add('input-error');
+      this.showToast('Please enter a valid 10-digit mobile number before requesting OTP', 'warning');
+      return;
+    }
+
+    if (phoneInput) phoneInput.classList.remove('input-error');
+
+    // Generate 6-digit OTP
+    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    this.generatedFarmerOtp = generatedOtp;
+
+    const otpInput = document.getElementById('auth-farmer-otp');
+    const otpHint = document.getElementById('auth-farmer-otp-hint');
+    const getOtpBtn = document.getElementById('auth-farmer-get-otp-btn');
+
+    if (otpInput) {
+      otpInput.disabled = false;
+      otpInput.value = generatedOtp; // Auto-fill for seamless user testing while editable
+      otpInput.focus();
+    }
+
+    if (otpHint) {
+      otpHint.innerHTML = `<span style="color: var(--color-success); font-weight: 600;">✓ OTP Sent to +91 ${digitsOnly}: <strong>${generatedOtp}</strong></span>`;
+    }
+
+    if (getOtpBtn) {
+      getOtpBtn.textContent = 'Resend OTP';
+    }
+
+    soundEngine.playBeep('success');
+    this.showToast(`Verification OTP sent: ${generatedOtp}`, 'success');
+  }
+
+  // Strict Validation for Farmer Login
   handleFarmerLoginSubmit(e) {
     if (e) e.preventDefault();
     const phoneInput = document.getElementById('auth-farmer-phone');
+    const otpInput = document.getElementById('auth-farmer-otp');
     const phoneVal = phoneInput ? phoneInput.value.trim() : '';
+    const otpVal = otpInput ? otpInput.value.trim() : '';
 
     // Validate 10 digits numeric only
     const digitsOnly = phoneVal.replace(/\D/g, '');
@@ -65,8 +108,25 @@ class AppController {
       this.showToast('Please enter a valid 10-digit mobile number (numbers only)', 'warning');
       return;
     }
-
     if (phoneInput) phoneInput.classList.remove('input-error');
+
+    // Validate OTP
+    if (!this.generatedFarmerOtp && !otpVal) {
+      this.showToast('Please click "Get OTP" to receive your verification code', 'warning');
+      if (otpInput) {
+        otpInput.disabled = false;
+        otpInput.classList.add('input-error');
+      }
+      return;
+    }
+
+    if (!otpVal || otpVal.length < 4) {
+      if (otpInput) otpInput.classList.add('input-error');
+      this.showToast('Please enter the valid OTP verification code', 'warning');
+      return;
+    }
+    if (otpInput) otpInput.classList.remove('input-error');
+
     this.loginFarmer(digitsOnly, 'Ramesh Singh');
   }
 
@@ -77,37 +137,46 @@ class AppController {
     this.showToast(`Logged in as Farmer (${name} - ${phone})`, 'success');
   }
 
-  // Strict Comprehensive Validation for Official Login
+  // 2. Strict Comprehensive Validation for Official / Admin Login
   handleOfficialLoginSubmit(e) {
     if (e) e.preventDefault();
     const idInput = document.getElementById('auth-officer-id');
-    const centerInput = document.getElementById('auth-officer-center');
-    const deptInput = document.getElementById('auth-officer-dept');
+    const centerSelect = document.getElementById('auth-officer-center');
     const pinInput = document.getElementById('auth-officer-pin');
 
     const officerId = idInput ? idInput.value.trim() : '';
-    const center = centerInput ? centerInput.value.trim() : '';
-    const dept = deptInput ? deptInput.value.trim() : '';
+    const center = centerSelect ? centerSelect.value.trim() : '';
     const pin = pinInput ? pinInput.value.trim() : '';
 
-    if (!officerId || !center || !dept || !pin) {
-      this.showToast('Please fill in ALL official login details before proceeding', 'warning');
-      if (idInput && !officerId) idInput.classList.add('input-error');
-      if (centerInput && !center) centerInput.classList.add('input-error');
-      if (deptInput && !dept) deptInput.classList.add('input-error');
-      if (pinInput && !pin) pinInput.classList.add('input-error');
+    // Employee ID: strictly max 12 characters
+    if (!officerId || officerId.length > 12) {
+      if (idInput) idInput.classList.add('input-error');
+      this.showToast('Official Employee ID is required and must not exceed 12 characters', 'warning');
       return;
     }
-
     if (idInput) idInput.classList.remove('input-error');
-    if (centerInput) centerInput.classList.remove('input-error');
-    if (deptInput) deptInput.classList.remove('input-error');
+
+    // Center selection from dropdown
+    if (!center) {
+      if (centerSelect) centerSelect.classList.add('input-error');
+      this.showToast('Please select a valid Procurement Mandi / Center', 'warning');
+      return;
+    }
+    if (centerSelect) centerSelect.classList.remove('input-error');
+
+    // PIN: strictly numeric and max 6 digits
+    const pinDigits = pin.replace(/\D/g, '');
+    if (!pinDigits || pinDigits.length > 6) {
+      if (pinInput) pinInput.classList.add('input-error');
+      this.showToast('Please enter a valid security PIN (up to 6 digits only)', 'warning');
+      return;
+    }
     if (pinInput) pinInput.classList.remove('input-error');
 
     this.loginAdmin(officerId, center);
   }
 
-  loginAdmin(officerId = 'OFFICER-PB-104', center = 'Khanna Mandi') {
+  loginAdmin(officerId = 'OFFICER-PB10', center = 'Khanna Central Grain Mandi') {
     this.setRole('admin');
     this.setAdminSubTab('yard');
     this.showToast(`Logged in as Official (${officerId} @ ${center})`, 'success');
@@ -199,12 +268,35 @@ class AppController {
   }
 
   bindGlobalEvents() {
-    // Phone input restriction to numbers only
+    // Farmer Mobile input restriction to numbers only (10 digits)
     const phoneInput = document.getElementById('auth-farmer-phone');
     if (phoneInput) {
       phoneInput.addEventListener('input', (e) => {
-        // Strip everything except digits
         e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+      });
+    }
+
+    // Farmer OTP input restriction to numbers only (6 digits)
+    const otpInput = document.getElementById('auth-farmer-otp');
+    if (otpInput) {
+      otpInput.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+      });
+    }
+
+    // Official Employee ID restriction to max 12 characters (alphanumeric/hyphen)
+    const officerIdInput = document.getElementById('auth-officer-id');
+    if (officerIdInput) {
+      officerIdInput.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 12);
+      });
+    }
+
+    // Official PIN restriction to numbers only (max 6 digits)
+    const officerPinInput = document.getElementById('auth-officer-pin');
+    if (officerPinInput) {
+      officerPinInput.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
       });
     }
 

@@ -36,7 +36,7 @@
       </div>
 
       <div class="auth-roles-grid">
-        <!-- Farmer Login Card (Numbers Only Validation) -->
+        <!-- Farmer Login Card (Mobile + Get OTP + Enter OTP Validation) -->
         <div class="auth-card featured">
           <div>
             <div class="auth-role-tag" data-i18n="farmerAccess">Farmer Access</div>
@@ -46,13 +46,26 @@
             <form onsubmit="app.handleFarmerLoginSubmit(event)">
               <div class="form-group">
                 <label class="form-label" data-i18n="registeredMobile">Registered Mobile Number (10 Digits Only)</label>
-                <input type="tel" id="auth-farmer-phone" class="form-input" placeholder="e.g. 9872100412" maxlength="10" value="9872100412" required />
+                <div style="display: flex; gap: 0.5rem;">
+                  <input type="tel" id="auth-farmer-phone" class="form-input" placeholder="e.g. 9872100412" maxlength="10" value="9872100412" required />
+                  <button type="button" id="auth-farmer-get-otp-btn" class="btn btn-secondary" style="white-space: nowrap; padding: 0.65rem 1rem; font-weight: 600;" onclick="app.handleFarmerGetOtp()">
+                    Get OTP
+                  </button>
+                </div>
                 <div class="form-field-hint" data-i18n="mobileHint">Numbers only (0-9). Exactly 10 digits required.</div>
               </div>
+
+              <div class="form-group">
+                <label class="form-label" data-i18n="enterOtp">Enter Verification OTP (6 Digits)</label>
+                <input type="text" id="auth-farmer-otp" class="form-input" placeholder="Enter 6-digit OTP (e.g. 482901)" maxlength="6" disabled />
+                <div id="auth-farmer-otp-hint" class="form-field-hint">Click 'Get OTP' to receive verification code.</div>
+              </div>
+
               <div class="form-group">
                 <label class="form-label" data-i18n="farmerId">Farmer ID (Optional)</label>
                 <input type="text" id="auth-farmer-id" class="form-input" value="PB-FARM-99402" />
               </div>
+
               <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;" data-i18n="loginFarmerBtn">
                 Login as Farmer (Ramesh Singh)
               </button>
@@ -60,7 +73,7 @@
           </div>
         </div>
 
-        <!-- Official / Admin Login Card (Strict Complete Details Validation) -->
+        <!-- Official / Admin Login Card (12 Char Employee ID, Dropdown Center, No Dept, 6-Digit PIN) -->
         <div class="auth-card">
           <div>
             <div class="auth-role-tag" style="color: var(--color-secondary);" data-i18n="officialAccess">Official / Yard Access</div>
@@ -69,23 +82,28 @@
             
             <form onsubmit="app.handleOfficialLoginSubmit(event)">
               <div class="form-group">
-                <label class="form-label" data-i18n="employeeId">Official Employee ID *</label>
-                <input type="text" id="auth-officer-id" class="form-input" placeholder="e.g. OFFICER-PB-104" value="OFFICER-PB-104" required />
+                <label class="form-label" data-i18n="employeeId">Official Employee ID (Max 12 Characters) *</label>
+                <input type="text" id="auth-officer-id" class="form-input" placeholder="e.g. OFFICER-PB10" maxlength="12" value="OFFICER-PB10" required />
+                <div class="form-field-hint">Max 12 characters alphanumeric.</div>
               </div>
+
               <div class="form-group">
                 <label class="form-label" data-i18n="mandiCenter">Procurement Mandi / Yard Center *</label>
-                <input type="text" id="auth-officer-center" class="form-input" placeholder="e.g. Khanna Central Mandi" value="Khanna Central Grain Mandi" required />
+                <select id="auth-officer-center" class="form-select" required>
+                  <option value="Khanna Central Grain Mandi" selected>Khanna Central Grain Mandi (Punjab)</option>
+                  <option value="Samrala Agro Procurement Yard">Samrala Agro Procurement Yard (Punjab)</option>
+                  <option value="Karnal Regional Agro Procurement Center">Karnal Regional Procurement Center (Haryana)</option>
+                  <option value="Sirhind Grain Mandi">Sirhind Grain Mandi (Punjab)</option>
+                  <option value="Moga Grain Terminal">Moga Grain Terminal (Punjab)</option>
+                </select>
               </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
-                <div class="form-group">
-                  <label class="form-label" data-i18n="department">Department *</label>
-                  <input type="text" id="auth-officer-dept" class="form-input" placeholder="e.g. FCI Yard Ops" value="FCI Procurement Wing" required />
-                </div>
-                <div class="form-group">
-                  <label class="form-label" data-i18n="securityPin">Security PIN *</label>
-                  <input type="password" id="auth-officer-pin" class="form-input" placeholder="PIN" maxlength="6" value="1234" required />
-                </div>
+
+              <div class="form-group">
+                <label class="form-label" data-i18n="securityPin">Security PIN (Max 6 Digits) *</label>
+                <input type="password" id="auth-officer-pin" class="form-input" placeholder="PIN (up to 6 digits)" maxlength="6" value="1234" required />
+                <div class="form-field-hint">Numbers only (0-9). Up to 6 digits maximum.</div>
               </div>
+
               <button type="submit" class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;" data-i18n="loginOfficialBtn">
                 Verify & Login as Official
               </button>
