@@ -11,6 +11,7 @@ class AppController {
     this.isOffline = false;
     this.isDrawerOpen = false;
     this.theme = 'light';
+    this.farmerAuthMode = 'login'; // 'login' or 'register'
     this.generatedFarmerOtp = null;
   }
 
@@ -21,6 +22,7 @@ class AppController {
     this.loadSavedSession();
     this.loadLanguage();
     this.bindGlobalEvents();
+    this.checkFarmerLoginFormValidity();
 
     farmerPortal.init();
     yardManager.init();
@@ -51,6 +53,50 @@ class AppController {
       cardNav.render();
     }
     this.renderRoleView();
+  }
+
+  // Toggle between Farmer Login and Farmer Registration
+  setFarmerAuthMode(mode) {
+    this.farmerAuthMode = mode;
+    const loginMode = document.getElementById('farmer-login-mode');
+    const regMode = document.getElementById('farmer-register-mode');
+    const tabLogin = document.getElementById('farmer-tab-login');
+    const tabRegister = document.getElementById('farmer-tab-register');
+
+    if (mode === 'login') {
+      if (loginMode) loginMode.style.display = 'block';
+      if (regMode) regMode.style.display = 'none';
+      if (tabLogin) tabLogin.classList.add('active');
+      if (tabRegister) tabRegister.classList.remove('active');
+      this.checkFarmerLoginFormValidity();
+    } else {
+      if (loginMode) loginMode.style.display = 'none';
+      if (regMode) regMode.style.display = 'block';
+      if (tabLogin) tabLogin.classList.remove('active');
+      if (tabRegister) tabRegister.classList.add('active');
+      
+      const addressInput = document.getElementById('reg-farmer-address');
+      if (addressInput && addressInput.value) {
+        this.handleRegistrationAddressInput(addressInput.value);
+      }
+    }
+  }
+
+  // Check Farmer Login Form Validity: phone must be 10 digits and OTP must be 6 digits
+  checkFarmerLoginFormValidity() {
+    const phoneInput = document.getElementById('auth-farmer-phone');
+    const otpInput = document.getElementById('auth-farmer-otp');
+    const submitBtn = document.getElementById('auth-farmer-login-submit-btn');
+
+    if (!submitBtn) return;
+
+    const phoneVal = phoneInput ? phoneInput.value.replace(/\D/g, '') : '';
+    const otpVal = otpInput ? otpInput.value.replace(/\D/g, '') : '';
+
+    const isPhoneValid = phoneVal.length === 10;
+    const isOtpValid = otpVal.length === 6;
+
+    submitBtn.disabled = !(isPhoneValid && isOtpValid);
   }
 
   // 1. Farmer Login OTP Generation
@@ -89,8 +135,12 @@ class AppController {
       getOtpBtn.textContent = 'Resend OTP';
     }
 
-    soundEngine.playBeep('success');
-    this.showToast(`Verification OTP sent: ${generatedOtp}`, 'success');
+    this.checkFarmerLoginFormValidity();
+
+    if (typeof soundEngine !== 'undefined') {
+      soundEngine.playBeep('success');
+    }
+    this.showToast(`OTP sent to ${digitsOnly}`, 'success');
   }
 
   // Strict Validation for Farmer Login
@@ -120,14 +170,124 @@ class AppController {
       return;
     }
 
-    if (!otpVal || otpVal.length < 4) {
+    if (!otpVal || otpVal.length !== 6) {
       if (otpInput) otpInput.classList.add('input-error');
-      this.showToast('Please enter the valid OTP verification code', 'warning');
+      this.showToast('Please enter the 6-digit OTP verification code', 'warning');
       return;
     }
     if (otpInput) otpInput.classList.remove('input-error');
 
     this.loginFarmer(digitsOnly, 'Ramesh Singh');
+  }
+
+  // Dynamic Suggestion for Nearest Procurement Center based on Address
+  handleRegistrationAddressInput(address) {
+    const box = document.getElementById('nearest-center-suggestion-box');
+    const nameEl = document.getElementById('nearest-center-name');
+    const metaEl = document.getElementById('nearest-center-meta');
+    if (!nameEl || !metaEl) return;
+
+    const text = (address || '').toLowerCase();
+
+    let centerName = 'Khanna Central Grain Mandi';
+    let centerMeta = '📍 Approx. 4.8 km • Active Capacity: 2,500 Qtl/day • Priority Fast-Track Available';
+
+    if (text.includes('samrala') || text.includes('141114')) {
+      centerName = 'Samrala Agro Procurement Yard';
+      centerMeta = '📍 Approx. 3.2 km • Active Capacity: 1,800 Qtl/day • Fast Token Lane';
+    } else if (text.includes('karnal') || text.includes('haryana') || text.includes('132001')) {
+      centerName = 'Karnal Regional Agro Procurement Center';
+      centerMeta = '📍 Approx. 5.1 km • Active Capacity: 3,200 Qtl/day • Multi-Lane Weighbridge';
+    } else if (text.includes('sirhind') || text.includes('fatehgarh') || text.includes('140406')) {
+      centerName = 'Sirhind Grain Mandi';
+      centerMeta = '📍 Approx. 6.4 km • Active Capacity: 2,100 Qtl/day • Automated Moisture Labs';
+    } else if (text.includes('moga') || text.includes('142001')) {
+      centerName = 'Moga Grain Terminal';
+      centerMeta = '📍 Approx. 7.9 km • Active Capacity: 4,000 Qtl/day • High-Capacity Silo Storage';
+    } else if (text.includes('amritsar') || text.includes('143001')) {
+      centerName = 'Amritsar Agro Logistics Yard';
+      centerMeta = '📍 Approx. 8.5 km • Active Capacity: 3,500 Qtl/day • Direct Rail Siding';
+    } else if (text.includes('patiala') || text.includes('nabha') || text.includes('147001')) {
+      centerName = 'Patiala Mandi Complex';
+      centerMeta = '📍 Approx. 6.0 km • Active Capacity: 2,800 Qtl/day • Direct DBT Counter';
+    }
+
+    nameEl.textContent = centerName;
+    metaEl.textContent = centerMeta;
+    if (box) {
+      box.style.display = 'block';
+    }
+  }
+
+  // Handle Farmer Registration Form Submission
+  handleFarmerRegisterSubmit(e) {
+    if (e) e.preventDefault();
+
+    const nameInput = document.getElementById('reg-farmer-name');
+    const phoneInput = document.getElementById('reg-farmer-phone');
+    const bankInput = document.getElementById('reg-farmer-bank');
+    const aadhaarInput = document.getElementById('reg-farmer-aadhaar');
+    const addressInput = document.getElementById('reg-farmer-address');
+
+    const name = nameInput ? nameInput.value.trim() : '';
+    const phone = phoneInput ? phoneInput.value.trim().replace(/\D/g, '') : '';
+    const bank = bankInput ? bankInput.value.trim() : '';
+    const aadhaarRaw = aadhaarInput ? aadhaarInput.value.trim().replace(/\D/g, '') : '';
+    const address = addressInput ? addressInput.value.trim() : '';
+
+    if (!name || name.length < 3) {
+      if (nameInput) nameInput.classList.add('input-error');
+      this.showToast('Please enter full Farmer Name (as per Aadhaar)', 'warning');
+      return;
+    }
+    if (nameInput) nameInput.classList.remove('input-error');
+
+    if (phone.length !== 10) {
+      if (phoneInput) phoneInput.classList.add('input-error');
+      this.showToast('Please enter a valid 10-digit phone number (numbers only)', 'warning');
+      return;
+    }
+    if (phoneInput) phoneInput.classList.remove('input-error');
+
+    if (!bank || bank.length < 8) {
+      if (bankInput) bankInput.classList.add('input-error');
+      this.showToast('Please enter a valid Bank Account Number (minimum 8 characters)', 'warning');
+      return;
+    }
+    if (bankInput) bankInput.classList.remove('input-error');
+
+    if (aadhaarRaw.length !== 12) {
+      if (aadhaarInput) aadhaarInput.classList.add('input-error');
+      this.showToast('Please enter a valid 12-digit Aadhaar Number', 'warning');
+      return;
+    }
+    if (aadhaarInput) aadhaarInput.classList.remove('input-error');
+
+    if (!address || address.length < 5) {
+      if (addressInput) addressInput.classList.add('input-error');
+      this.showToast('Please enter your address (village, tehsil, district, PIN)', 'warning');
+      return;
+    }
+    if (addressInput) addressInput.classList.remove('input-error');
+
+    const formattedAadhaar = `XXXX-XXXX-${aadhaarRaw.slice(-4)}`;
+    const farmerId = `PB-FARM-${Math.floor(10000 + Math.random() * 90000)}`;
+    const maskedBank = `Bank A/C ..${bank.slice(-4)}`;
+
+    if (typeof farmerPortal !== 'undefined') {
+      farmerPortal.currentFarmerName = name;
+      farmerPortal.currentFarmerPhone = phone;
+      farmerPortal.currentFarmerAadhaar = formattedAadhaar;
+      farmerPortal.currentFarmerId = farmerId;
+      farmerPortal.currentBankMasked = maskedBank;
+      farmerPortal.currentVillage = address;
+    }
+
+    if (typeof soundEngine !== 'undefined') {
+      soundEngine.playBeep('success');
+    }
+    this.showToast(`Registration successful! Welcome to KrishiSetu, ${name}`, 'success');
+    this.setRole('farmer');
   }
 
   loginFarmer(phone = '9872100412', name = 'Ramesh Singh') {
@@ -273,6 +433,7 @@ class AppController {
     if (phoneInput) {
       phoneInput.addEventListener('input', (e) => {
         e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+        this.checkFarmerLoginFormValidity();
       });
     }
 
@@ -281,6 +442,37 @@ class AppController {
     if (otpInput) {
       otpInput.addEventListener('input', (e) => {
         e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+        this.checkFarmerLoginFormValidity();
+      });
+    }
+
+    // Registration Phone input (10 digits numeric only)
+    const regPhoneInput = document.getElementById('reg-farmer-phone');
+    if (regPhoneInput) {
+      regPhoneInput.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+      });
+    }
+
+    // Registration Bank Account (numeric/alphanumeric max 18 chars)
+    const regBankInput = document.getElementById('reg-farmer-bank');
+    if (regBankInput) {
+      regBankInput.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 18);
+      });
+    }
+
+    // Registration Aadhaar (12 digits with XXXX-XXXX-XXXX auto formatting)
+    const regAadhaarInput = document.getElementById('reg-farmer-aadhaar');
+    if (regAadhaarInput) {
+      regAadhaarInput.addEventListener('input', (e) => {
+        let v = e.target.value.replace(/\D/g, '').slice(0, 12);
+        if (v.length > 8) {
+          v = `${v.slice(0, 4)}-${v.slice(4, 8)}-${v.slice(8)}`;
+        } else if (v.length > 4) {
+          v = `${v.slice(0, 4)}-${v.slice(4)}`;
+        }
+        e.target.value = v;
       });
     }
 

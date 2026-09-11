@@ -36,40 +36,107 @@
       </div>
 
       <div class="auth-roles-grid">
-        <!-- Farmer Login Card (Mobile + Get OTP + Enter OTP Validation) -->
+        <!-- Farmer Auth Card (Tabbed: Login vs Register / Sign Up) -->
         <div class="auth-card featured">
           <div>
             <div class="auth-role-tag" data-i18n="farmerAccess">Farmer Access</div>
-            <h3 data-i18n="farmerLogin">Farmer Login</h3>
-            <p data-i18n="farmerLoginDesc">Schedule crop delivery slots, view digital passes, track real-time yard queues, and monitor direct DBT bank payouts.</p>
             
-            <form onsubmit="app.handleFarmerLoginSubmit(event)">
-              <div class="form-group">
-                <label class="form-label" data-i18n="registeredMobile">Registered Mobile Number (10 Digits Only)</label>
-                <div style="display: flex; gap: 0.5rem;">
-                  <input type="tel" id="auth-farmer-phone" class="form-input" placeholder="e.g. 9872100412" maxlength="10" value="9872100412" required />
-                  <button type="button" id="auth-farmer-get-otp-btn" class="btn btn-secondary" style="white-space: nowrap; padding: 0.65rem 1rem; font-weight: 600;" onclick="app.handleFarmerGetOtp()">
-                    Get OTP
-                  </button>
-                </div>
-                <div class="form-field-hint" data-i18n="mobileHint">Numbers only (0-9). Exactly 10 digits required.</div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" data-i18n="enterOtp">Enter Verification OTP (6 Digits)</label>
-                <input type="text" id="auth-farmer-otp" class="form-input" placeholder="Enter 6-digit OTP (e.g. 482901)" maxlength="6" disabled />
-                <div id="auth-farmer-otp-hint" class="form-field-hint">Click 'Get OTP' to receive verification code.</div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" data-i18n="farmerId">Farmer ID (Optional)</label>
-                <input type="text" id="auth-farmer-id" class="form-input" value="PB-FARM-99402" />
-              </div>
-
-              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;" data-i18n="loginFarmerBtn">
-                Login as Farmer (Ramesh Singh)
+            <!-- Segmented Sub-Toggle for Farmer Login vs Register -->
+            <div class="auth-sub-toggle">
+              <button type="button" id="farmer-tab-login" class="auth-sub-tab active" onclick="app.setFarmerAuthMode('login')">
+                Farmer Login
               </button>
-            </form>
+              <button type="button" id="farmer-tab-register" class="auth-sub-tab" onclick="app.setFarmerAuthMode('register')">
+                Register / Sign Up
+              </button>
+            </div>
+
+            <!-- MODE A: Farmer Login Form -->
+            <div id="farmer-login-mode">
+              <h3 data-i18n="farmerLogin">Farmer Login</h3>
+              <p data-i18n="farmerLoginDesc">Schedule crop delivery slots, view digital passes, track real-time yard queues, and monitor direct DBT bank payouts.</p>
+              
+              <form onsubmit="app.handleFarmerLoginSubmit(event)">
+                <div class="form-group">
+                  <label class="form-label" data-i18n="registeredMobile">Registered Mobile Number (10 Digits Only)</label>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <input type="tel" id="auth-farmer-phone" class="form-input" placeholder="e.g. 9872100412" maxlength="10" value="9872100412" required oninput="app.checkFarmerLoginFormValidity()" />
+                    <button type="button" id="auth-farmer-get-otp-btn" class="btn btn-secondary" style="white-space: nowrap; padding: 0.65rem 1rem; font-weight: 600;" onclick="app.handleFarmerGetOtp()">
+                      Get OTP
+                    </button>
+                  </div>
+                  <div class="form-field-hint" data-i18n="mobileHint">Numbers only (0-9). Exactly 10 digits required.</div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" data-i18n="enterOtp">Enter Verification OTP (6 Digits)</label>
+                  <input type="text" id="auth-farmer-otp" class="form-input" placeholder="Enter 6-digit OTP (e.g. 482901)" maxlength="6" disabled oninput="app.checkFarmerLoginFormValidity()" />
+                  <div id="auth-farmer-otp-hint" class="form-field-hint">Click 'Get OTP' to receive verification code.</div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" data-i18n="farmerId">Farmer ID (Optional)</label>
+                  <input type="text" id="auth-farmer-id" class="form-input" value="PB-FARM-99402" />
+                </div>
+
+                <button type="submit" id="auth-farmer-login-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;" data-i18n="loginFarmerBtn" disabled>
+                  Login as Farmer (Ramesh Singh)
+                </button>
+              </form>
+            </div>
+
+            <!-- MODE B: Farmer Registration / Sign Up Form -->
+            <div id="farmer-register-mode" style="display: none;">
+              <h3>New Farmer Registration</h3>
+              <p>Register with Aadhaar and your bank account to enable direct mandi slot bookings and automated DBT payments.</p>
+              
+              <form onsubmit="app.handleFarmerRegisterSubmit(event)">
+                <div class="form-group">
+                  <label class="form-label">Farmer Name (as per Aadhaar) *</label>
+                  <input type="text" id="reg-farmer-name" class="form-input" placeholder="e.g. Gurpreet Singh" required />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Phone Number (linked to bank account) *</label>
+                  <input type="tel" id="reg-farmer-phone" class="form-input" placeholder="e.g. 9876543210" maxlength="10" required />
+                  <div class="form-field-hint">10 digits numeric only.</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
+                  <div class="form-group">
+                    <label class="form-label">Bank Account Number *</label>
+                    <input type="text" id="reg-farmer-bank" class="form-input" placeholder="e.g. 501004829104" maxlength="18" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Aadhaar Number *</label>
+                    <input type="text" id="reg-farmer-aadhaar" class="form-input" placeholder="XXXX-XXXX-XXXX" maxlength="14" required />
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0.5rem;">
+                  <label class="form-label">Address *</label>
+                  <textarea id="reg-farmer-address" class="form-input" rows="2" placeholder="e.g. Village Alour, Khanna Tehsil, Ludhiana, Punjab - 141401" required oninput="app.handleRegistrationAddressInput(this.value)"></textarea>
+                </div>
+
+                <!-- Dynamic Mock Suggestion Card: Nearest Procurement Centre -->
+                <div id="nearest-center-suggestion-box" class="nearest-center-panel">
+                  <div style="font-size: 0.72rem; font-weight: 700; color: var(--color-primary); text-transform: uppercase; letter-spacing: 0.04em;">
+                    Nearest Procurement Centre
+                  </div>
+                  <div id="nearest-center-name" style="font-weight: 700; font-size: 0.92rem; color: var(--text-main); margin-top: 0.2rem;">
+                    Khanna Central Grain Mandi
+                  </div>
+                  <div id="nearest-center-meta" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.15rem;">
+                    📍 Approx. 4.8 km • Active Capacity: 2,500 Qtl/day • Priority Fast-Track Available
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                  Complete Registration & Login
+                </button>
+              </form>
+            </div>
+
           </div>
         </div>
 
