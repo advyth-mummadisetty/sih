@@ -920,23 +920,33 @@ body {
   display: grid;
   grid-template-columns: 1.15fr 1fr;
   gap: 1.75rem;
-  align-items: stretch;
+  align-items: start;
 }
 
 .booking-col-left {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 1rem;
+  justify-content: flex-start;
+}
+
+.booking-col-left .form-group {
+  margin-bottom: 0;
 }
 
 .booking-col-right {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 1rem;
+  justify-content: flex-start;
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 1.25rem;
+}
+
+.booking-col-right .form-group {
+  margin-bottom: 0;
 }
 
 /* User Settings Tabbed Interface */

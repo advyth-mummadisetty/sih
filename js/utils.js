@@ -214,6 +214,7 @@ class DatabaseManager {
         centers: INITIAL_CENTERS,
         crops: INITIAL_CROPS,
         bookings: INITIAL_BOOKINGS,
+        farmers: typeof INITIAL_FARMERS !== 'undefined' ? INITIAL_FARMERS : [],
         activeEmergencyAlert: null,
         broadcastHistory: typeof INITIAL_BROADCAST_HISTORY !== 'undefined' ? INITIAL_BROADCAST_HISTORY : [],
         activeCenterId: 'center-1',
@@ -222,12 +223,20 @@ class DatabaseManager {
       };
       this.save(initialData);
     } else {
-      // Ensure broadcast fields exist in existing storage
+      // Ensure broadcast & farmer fields exist in existing storage
       try {
         const parsed = JSON.parse(existing);
+        let needsSave = false;
         if (typeof parsed.activeEmergencyAlert === 'undefined') {
           parsed.activeEmergencyAlert = null;
           parsed.broadcastHistory = typeof INITIAL_BROADCAST_HISTORY !== 'undefined' ? INITIAL_BROADCAST_HISTORY : [];
+          needsSave = true;
+        }
+        if (!parsed.farmers || !Array.isArray(parsed.farmers) || parsed.farmers.length === 0) {
+          parsed.farmers = typeof INITIAL_FARMERS !== 'undefined' ? [...INITIAL_FARMERS] : [];
+          needsSave = true;
+        }
+        if (needsSave) {
           this.save(parsed);
         }
       } catch (e) {}
@@ -278,6 +287,30 @@ class DatabaseManager {
     return null;
   }
 
+  deleteBooking(id) {
+    const data = this.get();
+    if (!data || !data.bookings) return false;
+    const initialLen = data.bookings.length;
+    data.bookings = data.bookings.filter(b => b.id !== id && b.queueToken !== id);
+    if (data.bookings.length !== initialLen) {
+      this.save(data);
+      return true;
+    }
+    return false;
+  }
+
+  deleteCompletedBookings() {
+    const data = this.get();
+    if (!data || !data.bookings) return 0;
+    const initialLen = data.bookings.length;
+    data.bookings = data.bookings.filter(b => b.status !== 'PAYMENT_COMPLETED');
+    const removedCount = initialLen - data.bookings.length;
+    if (removedCount > 0) {
+      this.save(data);
+    }
+    return removedCount;
+  }
+
   getCenters() {
     const data = this.get();
     return data ? data.centers : [];
@@ -296,6 +329,42 @@ class DatabaseManager {
   getCropById(id) {
     const crops = this.getCrops();
     return crops.find(c => c.id === id);
+  }
+
+  // Farmer Profiles & Persistent Registration
+  getFarmers() {
+    const data = this.get();
+    return data && Array.isArray(data.farmers) ? data.farmers : [];
+  }
+
+  getFarmerByPhone(phone) {
+    const farmers = this.getFarmers();
+    if (!phone) return null;
+    const cleanPhone = phone.toString().replace(/\D/g, '');
+    return farmers.find(f => {
+      const fPhone = (f.phone || '').toString().replace(/\D/g, '');
+      return (cleanPhone && fPhone === cleanPhone) || (f.farmerId && f.farmerId.toLowerCase() === phone.toString().toLowerCase());
+    }) || null;
+  }
+
+  saveFarmer(farmer) {
+    const data = this.get() || {};
+    if (!data.farmers || !Array.isArray(data.farmers)) {
+      data.farmers = [];
+    }
+    const cleanPhone = (farmer.phone || '').toString().replace(/\D/g, '');
+    const index = data.farmers.findIndex(f => {
+      const fPhone = (f.phone || '').toString().replace(/\D/g, '');
+      return (cleanPhone && fPhone === cleanPhone) || (farmer.farmerId && f.farmerId === farmer.farmerId);
+    });
+
+    if (index !== -1) {
+      data.farmers[index] = { ...data.farmers[index], ...farmer };
+    } else {
+      data.farmers.unshift(farmer);
+    }
+    this.save(data);
+    return farmer;
   }
 
   // Offline Sync Queue

@@ -19,7 +19,56 @@ class FarmerPortal {
     this.activeBookingId = 'KS-2026-PB-08492';
   }
 
+  loadActiveFarmerSession() {
+    const savedPhone = localStorage.getItem('KS_ACTIVE_FARMER_PHONE') || '9872100412';
+    const farmer = typeof db !== 'undefined' ? db.getFarmerByPhone(savedPhone) : null;
+    if (farmer) {
+      this.loadFarmer(farmer);
+    } else {
+      this.currentFarmerPhone = savedPhone;
+      this.currentFarmerName = 'Ramesh Singh';
+      this.currentFarmerAadhaar = 'XXXX-XXXX-4821';
+      this.currentFarmerId = 'PB-FARM-99402';
+      this.currentBankMasked = 'HDFC Bank - A/C ..8921';
+      this.currentBankIfsc = 'HDFC0001092';
+      this.currentVillage = 'Village Alour, Khanna Tehsil, Ludhiana';
+    }
+  }
+
+  loadFarmer(farmer) {
+    if (!farmer) return;
+    this.currentFarmerPhone = farmer.phone || this.currentFarmerPhone;
+    this.currentFarmerName = farmer.name || this.currentFarmerName;
+    this.currentFarmerAadhaar = farmer.aadhaar || this.currentFarmerAadhaar;
+    this.currentFarmerId = farmer.farmerId || this.currentFarmerId;
+    this.currentBankMasked = farmer.bankMasked || this.currentBankMasked;
+    this.currentBankIfsc = farmer.bankIfsc || 'SBIN0001420';
+    this.currentVillage = farmer.address || farmer.village || this.currentVillage;
+
+    localStorage.setItem('KS_ACTIVE_FARMER_PHONE', this.currentFarmerPhone);
+
+    if (typeof db !== 'undefined') {
+      const farmerBookings = db.getBookings().filter(b => b.farmerPhone === this.currentFarmerPhone);
+      if (farmerBookings.length > 0) {
+        this.activeBookingId = farmerBookings[0].id;
+      }
+    }
+
+    const farmerHeaderName = document.getElementById('farmer-profile-name');
+    const farmerHeaderAadhaar = document.getElementById('farmer-profile-aadhaar');
+    const farmerHeaderId = document.getElementById('farmer-profile-id');
+    const farmerHeaderBank = document.getElementById('farmer-profile-bank');
+
+    if (farmerHeaderName) farmerHeaderName.textContent = this.currentFarmerName;
+    if (farmerHeaderAadhaar) farmerHeaderAadhaar.textContent = this.currentFarmerAadhaar;
+    if (farmerHeaderId) farmerHeaderId.textContent = this.currentFarmerId;
+    if (farmerHeaderBank) farmerHeaderBank.textContent = this.currentBankMasked;
+
+    this.renderFarmerPassesAndLifecycle();
+  }
+
   init() {
+    this.loadActiveFarmerSession();
     this.renderFarmerEmergencyBanner();
     this.renderCenterOptions();
     this.renderCropOptions();
@@ -932,6 +981,19 @@ class FarmerPortal {
     this.currentBankMasked = bank;
     this.currentBankIfsc = ifsc;
     this.currentVillage = village;
+
+    if (typeof db !== 'undefined') {
+      db.saveFarmer({
+        farmerId: this.currentFarmerId,
+        name: this.currentFarmerName,
+        phone: this.currentFarmerPhone,
+        aadhaar: this.currentFarmerAadhaar,
+        bankMasked: this.currentBankMasked,
+        bankIfsc: this.currentBankIfsc,
+        address: this.currentVillage
+      });
+      localStorage.setItem('KS_ACTIVE_FARMER_PHONE', this.currentFarmerPhone);
+    }
 
     soundEngine.playBeep('success');
     app.showToast('Farmer Profile & Bank Details Updated', 'success');

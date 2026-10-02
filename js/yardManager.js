@@ -11,6 +11,7 @@ class YardManager {
     this.currentMoisturePercent = 11.4;
     this.currentForeignMatterPercent = 0.4;
     this.currentGrade = 'A';
+    this.draggedBookingId = null;
   }
 
   init() {
@@ -109,28 +110,250 @@ class YardManager {
     ];
 
     container.innerHTML = stages.map(col => `
-      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; min-height: 320px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.4rem;">
-          <h4 style="font-size: 0.85rem; font-family: var(--font-display); font-weight: 600;">${col.title}</h4>
-          <span class="badge-clean">${col.items.length}</span>
+      <div class="pipeline-col" 
+           data-stage-id="${col.id}"
+           ondragover="yardManager.handleDragOver(event)"
+           ondragenter="yardManager.handleDragEnter(event)"
+           ondragleave="yardManager.handleDragLeave(event)"
+           ondrop="yardManager.handleDrop(event, '${col.id}')">
+        
+        <div class="pipeline-col-header">
+          <div style="display: flex; align-items: center; gap: 0.4rem;">
+            <h4 style="font-size: 0.85rem; font-family: var(--font-display); font-weight: 600; margin: 0;">${col.title}</h4>
+            <span class="badge-clean">${col.items.length}</span>
+          </div>
+
+          ${col.id === 'disbursed' && col.items.length > 0 ? `
+            <button type="button" 
+                    class="pipeline-discard-btn" 
+                    style="padding: 0.15rem 0.45rem; font-size: 0.68rem;"
+                    title="Discard all completed records from pipeline" 
+                    onclick="event.stopPropagation(); yardManager.discardAllCompleted()">
+              Discard All
+            </button>
+          ` : ''}
         </div>
-        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-          ${col.items.length === 0 ? `<div style="font-size: 0.75rem; color: var(--text-dim); text-align: center; padding: 1.5rem 0;">Empty</div>` : ''}
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
+          ${col.items.length === 0 ? `
+            <div style="font-size: 0.75rem; color: var(--text-dim); text-align: center; padding: 2.2rem 0; border: 1px dashed var(--border-subtle); border-radius: var(--radius-sm); user-select: none;">
+              Drop Token Here
+            </div>` : ''}
+          
           ${col.items.map(b => `
-            <div style="background: var(--bg-surface-elevated); border: 1px solid ${b.id === this.activeWeighmentBookingId ? 'var(--color-primary)' : 'var(--border-subtle)'}; border-radius: var(--radius-sm); padding: 0.75rem; cursor: pointer;"
-                 onclick="yardManager.selectBookingForWeighbridge('${b.id}')">
+            <div class="pipeline-card" 
+                 id="pipeline-card-${b.id}"
+                 draggable="true" 
+                 data-booking-id="${b.id}"
+                 data-current-stage="${col.id}"
+                 ondragstart="yardManager.handleDragStart(event, '${b.id}')"
+                 ondragend="yardManager.handleDragEnd(event)"
+                 onclick="yardManager.selectBookingForWeighbridge('${b.id}')"
+                 style="border-color: ${b.id === this.activeWeighmentBookingId ? 'var(--color-primary)' : 'var(--border-subtle)'};">
+              
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
-                <span style="font-family: var(--font-mono); font-weight: 600; color: var(--color-primary); font-size: 0.8rem;">${b.queueToken || 'No Token'}</span>
-                ${b.isPriorityHighYield ? `<span class="badge-clean priority" style="font-size: 0.65rem;">Priority Yield</span>` : `<span class="badge-clean" style="font-size: 0.65rem;">${b.scheduledSlot.split(' - ')[0]}</span>`}
+                <div style="display: flex; align-items: center; gap: 0.3rem;">
+                  <span class="pipeline-drag-handle" title="Drag and drop across pipeline stages">⋮⋮</span>
+                  <span style="font-family: var(--font-mono); font-weight: 600; color: var(--color-primary); font-size: 0.8rem;">
+                    ${b.queueToken || 'No Token'}
+                  </span>
+                </div>
+                ${b.isPriorityHighYield ? 
+                  `<span class="badge-clean priority" style="font-size: 0.65rem;">Priority Yield</span>` : 
+                  `<span class="badge-clean" style="font-size: 0.65rem;">${(b.scheduledSlot || '10:00 AM').split(' - ')[0]}</span>`}
               </div>
+
               <div style="font-weight: 600; font-size: 0.85rem; margin-bottom: 0.15rem;">${b.farmerName}</div>
               <div style="font-size: 0.75rem; color: var(--text-muted);">${b.cropName} • ${b.declaredQuantityQuintals} Qtl</div>
-              <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 0.25rem;">${b.vehicleNo}</div>
+              <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 0.25rem;">${b.vehicleNo || 'Vehicle Unregistered'}</div>
+
+              ${col.id === 'disbursed' ? `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.55rem; padding-top: 0.45rem; border-top: 1px dashed var(--border-subtle);">
+                  <span style="font-size: 0.68rem; color: var(--color-success); font-weight: 600;">✓ Disbursed</span>
+                  <button type="button" 
+                          class="pipeline-discard-btn" 
+                          title="Discard this completed record from pipeline"
+                          onclick="event.stopPropagation(); yardManager.discardBooking('${b.id}')">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    Discard
+                  </button>
+                </div>
+              ` : ''}
             </div>
           `).join('')}
         </div>
       </div>
     `).join('');
+  }
+
+  // Drag and Drop Kanban Handlers
+  handleDragStart(e, bookingId) {
+    this.draggedBookingId = bookingId;
+    if (e.dataTransfer) {
+      e.dataTransfer.setData('text/plain', bookingId);
+      e.dataTransfer.effectAllowed = 'move';
+    }
+    const card = document.getElementById(`pipeline-card-${bookingId}`) || e.currentTarget;
+    if (card) {
+      setTimeout(() => card.classList.add('dragging'), 10);
+    }
+  }
+
+  handleDragEnd(e) {
+    this.draggedBookingId = null;
+    const draggingCards = document.querySelectorAll('.pipeline-card.dragging');
+    draggingCards.forEach(c => c.classList.remove('dragging'));
+    const cols = document.querySelectorAll('.pipeline-col');
+    cols.forEach(col => col.classList.remove('drag-over'));
+  }
+
+  handleDragOver(e) {
+    e.preventDefault();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'move';
+    }
+  }
+
+  handleDragEnter(e) {
+    e.preventDefault();
+    const col = e.currentTarget.closest('.pipeline-col');
+    if (col) col.classList.add('drag-over');
+  }
+
+  handleDragLeave(e) {
+    const col = e.currentTarget.closest('.pipeline-col');
+    if (col && !col.contains(e.relatedTarget)) {
+      col.classList.remove('drag-over');
+    }
+  }
+
+  handleDrop(e, targetStageId) {
+    e.preventDefault();
+    const cols = document.querySelectorAll('.pipeline-col');
+    cols.forEach(col => col.classList.remove('drag-over'));
+
+    const bookingId = (e.dataTransfer ? e.dataTransfer.getData('text/plain') : null) || this.draggedBookingId;
+    if (!bookingId) return;
+
+    this.moveBookingToStage(bookingId, targetStageId);
+  }
+
+  moveBookingToStage(bookingId, stageId) {
+    const booking = db.getBookingById(bookingId);
+    if (!booking) return;
+
+    const updates = {};
+    let stageTitle = '';
+
+    switch (stageId) {
+      case 'gate':
+        updates.status = 'CHECKED_IN';
+        stageTitle = 'Gate Arrival & Tokens';
+        break;
+
+      case 'weighbridge':
+        updates.status = 'ACTIVE_QUEUE';
+        stageTitle = 'Digital Weighbridge';
+        if (!booking.queueToken) {
+          const nextTokenNum = 100 + db.getBookings().filter(b => b.queueToken).length + 1;
+          updates.queueToken = generateTokenNumber(nextTokenNum);
+        }
+        if (!booking.checkInTime) {
+          updates.checkInTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        this.activeWeighmentBookingId = bookingId;
+        break;
+
+      case 'quality':
+        updates.status = 'WEIGHED';
+        stageTitle = 'Quality Testing Lab';
+        if (!booking.weighment) {
+          const gross = 5400;
+          const tare = 1600;
+          const net = gross - tare;
+          updates.weighment = {
+            grossKg: gross,
+            tareKg: tare,
+            netKg: net,
+            netQtl: net / 100,
+            moisturePercent: 11.2,
+            qualityGrade: 'A',
+            bonusOrDeductionPerQtl: 50,
+            effectiveRate: 2325,
+            calculatedGrossPayout: (net / 100) * 2325,
+            weighedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
+        }
+        break;
+
+      case 'unloading':
+        updates.status = 'QUALITY_APPROVED';
+        stageTitle = 'Unloading & Acceptance';
+        updates.paymentLifecycle = {
+          ...(booking.paymentLifecycle || {}),
+          currentStage: 2,
+          qualityApprovedAt: 'Today, ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        break;
+
+      case 'disbursed':
+        updates.status = 'PAYMENT_COMPLETED';
+        stageTitle = 'Completed & Disbursed';
+        if (!booking.queueToken) {
+          updates.queueToken = generateTokenNumber(100 + db.getBookings().filter(b => b.queueToken).length + 1);
+        }
+        const crop = db.getCropById(booking.cropId) || db.getCrops()[0];
+        const msp = crop ? crop.msp : 2275;
+        const total = booking.declaredQuantityQuintals * msp;
+        const utrNum = booking.paymentLifecycle?.utrNumber || `UTR${Math.floor(10000000 + Math.random() * 90000000)}`;
+        const batchNum = booking.paymentLifecycle?.dbtBatchId || `DBT-PFMS-${Math.floor(10000 + Math.random() * 90000)}`;
+
+        updates.paymentLifecycle = {
+          ...(booking.paymentLifecycle || {}),
+          currentStage: 3,
+          qualityApprovedAt: booking.paymentLifecycle?.qualityApprovedAt || 'Today, 11:30 AM',
+          paymentInitiatedAt: booking.paymentLifecycle?.paymentInitiatedAt || 'Today, 11:45 AM',
+          paymentCompletedAt: 'Today, ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          dbtBatchId: batchNum,
+          utrNumber: utrNum,
+          disbursedAmount: total
+        };
+        break;
+    }
+
+    db.updateBooking(bookingId, updates);
+    soundEngine.playBeep('success');
+    app.showToast(`Moved ${booking.farmerName} (${booking.queueToken || booking.id}) → ${stageTitle}`, 'success');
+
+    this.renderYardPipeline();
+    if (stageId === 'weighbridge') {
+      this.renderWeighbridgeTerminal();
+    }
+  }
+
+  discardBooking(bookingId) {
+    const booking = db.getBookingById(bookingId);
+    const label = booking ? (booking.queueToken || booking.farmerName) : bookingId;
+    const removed = db.deleteBooking(bookingId);
+    if (removed) {
+      soundEngine.playBeep('success');
+      app.showToast(`Record ${label} discarded from Completed & Disbursed`, 'info');
+      this.renderYardPipeline();
+    }
+  }
+
+  discardAllCompleted() {
+    const count = db.deleteCompletedBookings();
+    if (count > 0) {
+      soundEngine.playBeep('success');
+      app.showToast(`Discarded ${count} completed & disbursed records`, 'info');
+      this.renderYardPipeline();
+    } else {
+      app.showToast('No completed records to discard', 'info');
+    }
   }
 
   selectBookingForWeighbridge(bookingId) {

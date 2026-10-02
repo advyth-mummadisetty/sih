@@ -38,7 +38,7 @@ class AppController {
   }
 
   loadSavedSession() {
-    const savedRole = localStorage.getItem('KS_AUTH_ROLE') || 'farmer';
+    const savedRole = localStorage.getItem('KS_AUTH_ROLE') || 'auth';
     this.currentRole = savedRole;
   }
 
@@ -97,6 +97,18 @@ class AppController {
     const isOtpValid = otpVal.length === 6;
 
     submitBtn.disabled = !(isPhoneValid && isOtpValid);
+
+    // Dynamic button label based on recognized farmer
+    if (isPhoneValid && typeof db !== 'undefined') {
+      const recognized = db.getFarmerByPhone(phoneVal);
+      if (recognized && recognized.name) {
+        submitBtn.textContent = `Login as Farmer (${recognized.name})`;
+      } else {
+        submitBtn.textContent = 'Login as Farmer';
+      }
+    } else {
+      submitBtn.textContent = 'Login as Farmer';
+    }
   }
 
   // 1. Farmer Login OTP Generation
@@ -123,12 +135,12 @@ class AppController {
 
     if (otpInput) {
       otpInput.disabled = false;
-      otpInput.value = generatedOtp; // Auto-fill for seamless user testing while editable
+      otpInput.value = ''; // Keep empty so user types the code
       otpInput.focus();
     }
 
     if (otpHint) {
-      otpHint.innerHTML = `<span style="color: var(--color-success); font-weight: 600;">✓ OTP Sent to +91 ${digitsOnly}: <strong>${generatedOtp}</strong></span>`;
+      otpHint.innerHTML = `<span style="color: var(--color-success); font-weight: 600;">✓ OTP Dispatched to +91 ${digitsOnly}: <strong>${generatedOtp}</strong> (Enter to verify)</span>`;
     }
 
     if (getOtpBtn) {
@@ -140,7 +152,7 @@ class AppController {
     if (typeof soundEngine !== 'undefined') {
       soundEngine.playBeep('success');
     }
-    this.showToast(`OTP sent to ${digitsOnly}`, 'success');
+    this.showToast(`Your verification OTP is: ${generatedOtp}`, 'info');
   }
 
   // Strict Validation for Farmer Login
@@ -160,8 +172,8 @@ class AppController {
     }
     if (phoneInput) phoneInput.classList.remove('input-error');
 
-    // Validate OTP
-    if (!this.generatedFarmerOtp && !otpVal) {
+    // Validate OTP requested
+    if (!this.generatedFarmerOtp) {
       this.showToast('Please click "Get OTP" to receive your verification code', 'warning');
       if (otpInput) {
         otpInput.disabled = false;
@@ -175,9 +187,55 @@ class AppController {
       this.showToast('Please enter the 6-digit OTP verification code', 'warning');
       return;
     }
+
+    // STRICT OTP MATCH VALIDATION
+    if (otpVal !== this.generatedFarmerOtp) {
+      if (otpInput) {
+        otpInput.classList.add('input-error');
+        otpInput.focus();
+      }
+      if (typeof soundEngine !== 'undefined') {
+        soundEngine.playBeep('error');
+      }
+      this.showToast('Invalid OTP entered! Please check the code and try again.', 'warning');
+      return;
+    }
+
     if (otpInput) otpInput.classList.remove('input-error');
 
-    this.loginFarmer(digitsOnly, 'Ramesh Singh');
+    // Load registered farmer or create profile for first-time phone
+    let farmer = typeof db !== 'undefined' ? db.getFarmerByPhone(digitsOnly) : null;
+    const farmerIdInput = document.getElementById('auth-farmer-id');
+    const customId = farmerIdInput ? farmerIdInput.value.trim() : '';
+
+    if (!farmer) {
+      const newFarmerId = customId || `PB-FARM-${Math.floor(10000 + Math.random() * 90000)}`;
+      farmer = {
+        farmerId: newFarmerId,
+        name: customId ? `Farmer (${customId})` : `Farmer (${digitsOnly.slice(-4)})`,
+        phone: digitsOnly,
+        aadhaar: 'XXXX-XXXX-4821',
+        bankMasked: 'HDFC Bank - A/C ..8921',
+        bankIfsc: 'HDFC0001092',
+        address: 'Village Alour, Khanna Tehsil, Ludhiana',
+        registeredAt: new Date().toISOString()
+      };
+      if (typeof db !== 'undefined') {
+        db.saveFarmer(farmer);
+      }
+    } else if (customId && (!farmer.farmerId || farmer.farmerId !== customId)) {
+      farmer.farmerId = customId;
+      if (typeof db !== 'undefined') {
+        db.saveFarmer(farmer);
+      }
+    }
+
+    localStorage.setItem('KS_ACTIVE_FARMER_PHONE', farmer.phone);
+    if (typeof farmerPortal !== 'undefined') {
+      farmerPortal.loadFarmer(farmer);
+    }
+
+    this.loginFarmer(farmer.phone, farmer.name);
   }
 
   // Dynamic Suggestion for Nearest Procurement Center based on Address
@@ -274,14 +332,33 @@ class AppController {
     const farmerId = `PB-FARM-${Math.floor(10000 + Math.random() * 90000)}`;
     const maskedBank = `Bank A/C ..${bank.slice(-4)}`;
 
-    if (typeof farmerPortal !== 'undefined') {
-      farmerPortal.currentFarmerName = name;
-      farmerPortal.currentFarmerPhone = phone;
-      farmerPortal.currentFarmerAadhaar = formattedAadhaar;
-      farmerPortal.currentFarmerId = farmerId;
-      farmerPortal.currentBankMasked = maskedBank;
-      farmerPortal.currentVillage = address;
+    const newFarmer = {
+      farmerId: farmerId,
+      name: name,
+      phone: phone,
+      aadhaar: formattedAadhaar,
+      bankMasked: maskedBank,
+      bankIfsc: 'SBIN0001420',
+      address: address,
+      registeredAt: new Date().toISOString()
+    };
+
+    if (typeof db !== 'undefined') {
+      db.saveFarmer(newFarmer);
     }
+
+    localStorage.setItem('KS_ACTIVE_FARMER_PHONE', phone);
+
+    if (typeof farmerPortal !== 'undefined') {
+      farmerPortal.loadFarmer(newFarmer);
+    }
+
+    // Reset registration form inputs
+    if (nameInput) nameInput.value = '';
+    if (phoneInput) phoneInput.value = '';
+    if (bankInput) bankInput.value = '';
+    if (aadhaarInput) aadhaarInput.value = '';
+    if (addressInput) addressInput.value = '';
 
     if (typeof soundEngine !== 'undefined') {
       soundEngine.playBeep('success');
@@ -290,11 +367,20 @@ class AppController {
     this.setRole('farmer');
   }
 
-  loginFarmer(phone = '9872100412', name = 'Ramesh Singh') {
-    farmerPortal.currentFarmerPhone = phone;
-    farmerPortal.currentFarmerName = name;
+  loginFarmer(phone = '9872100412', name = '') {
+    localStorage.setItem('KS_ACTIVE_FARMER_PHONE', phone);
+    if (typeof farmerPortal !== 'undefined') {
+      const farmer = typeof db !== 'undefined' ? db.getFarmerByPhone(phone) : null;
+      if (farmer) {
+        farmerPortal.loadFarmer(farmer);
+        name = farmer.name;
+      } else {
+        farmerPortal.currentFarmerPhone = phone;
+        if (name) farmerPortal.currentFarmerName = name;
+      }
+    }
     this.setRole('farmer');
-    this.showToast(`Logged in as Farmer (${name} - ${phone})`, 'success');
+    this.showToast(`Logged in as Farmer (${name || 'Verified'} - +91 ${phone})`, 'success');
   }
 
   // 2. Strict Comprehensive Validation for Official / Admin Login
@@ -345,6 +431,27 @@ class AppController {
   logout() {
     this.setRole('auth');
     this.showToast('Logged out successfully', 'info');
+
+    const phoneInput = document.getElementById('auth-farmer-phone');
+    const otpInput = document.getElementById('auth-farmer-otp');
+    const farmerIdInput = document.getElementById('auth-farmer-id');
+    const otpHint = document.getElementById('auth-farmer-otp-hint');
+    const getOtpBtn = document.getElementById('auth-farmer-get-otp-btn');
+    const officerIdInput = document.getElementById('auth-officer-id');
+    const officerPinInput = document.getElementById('auth-officer-pin');
+
+    if (phoneInput) phoneInput.value = '';
+    if (otpInput) {
+      otpInput.value = '';
+      otpInput.disabled = true;
+    }
+    if (farmerIdInput) farmerIdInput.value = '';
+    if (otpHint) otpHint.innerHTML = "Click 'Get OTP' to receive verification code.";
+    if (getOtpBtn) getOtpBtn.textContent = 'Get OTP';
+    if (officerIdInput) officerIdInput.value = '';
+    if (officerPinInput) officerPinInput.value = '';
+    this.generatedFarmerOtp = null;
+    this.checkFarmerLoginFormValidity();
   }
 
   setAdminSubTab(tabId) {

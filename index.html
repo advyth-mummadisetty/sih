@@ -60,7 +60,7 @@
                 <div class="form-group">
                   <label class="form-label" data-i18n="registeredMobile">Registered Mobile Number (10 Digits Only)</label>
                   <div style="display: flex; gap: 0.5rem;">
-                    <input type="tel" id="auth-farmer-phone" class="form-input" placeholder="e.g. 9872100412" maxlength="10" value="9872100412" required oninput="app.checkFarmerLoginFormValidity()" />
+                    <input type="tel" id="auth-farmer-phone" class="form-input" placeholder="e.g. 9872100412" maxlength="10" value="" required oninput="app.checkFarmerLoginFormValidity()" />
                     <button type="button" id="auth-farmer-get-otp-btn" class="btn btn-secondary" style="white-space: nowrap; padding: 0.65rem 1rem; font-weight: 600;" onclick="app.handleFarmerGetOtp()">
                       Get OTP
                     </button>
@@ -76,11 +76,11 @@
 
                 <div class="form-group">
                   <label class="form-label" data-i18n="farmerId">Farmer ID (Optional)</label>
-                  <input type="text" id="auth-farmer-id" class="form-input" value="PB-FARM-99402" />
+                  <input type="text" id="auth-farmer-id" class="form-input" placeholder="e.g. PB-FARM-99402" value="" />
                 </div>
 
                 <button type="submit" id="auth-farmer-login-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;" data-i18n="loginFarmerBtn" disabled>
-                  Login as Farmer (Ramesh Singh)
+                  Login as Farmer
                 </button>
               </form>
             </div>
@@ -150,7 +150,7 @@
             <form onsubmit="app.handleOfficialLoginSubmit(event)">
               <div class="form-group">
                 <label class="form-label" data-i18n="employeeId">Official Employee ID (Max 12 Characters) *</label>
-                <input type="text" id="auth-officer-id" class="form-input" placeholder="e.g. OFFICER-PB10" maxlength="12" value="OFFICER-PB10" required />
+                <input type="text" id="auth-officer-id" class="form-input" placeholder="e.g. OFFICER-PB10" maxlength="12" value="" required />
                 <div class="form-field-hint">Max 12 characters alphanumeric.</div>
               </div>
 
@@ -167,7 +167,7 @@
 
               <div class="form-group">
                 <label class="form-label" data-i18n="securityPin">Security PIN (Max 6 Digits) *</label>
-                <input type="password" id="auth-officer-pin" class="form-input" placeholder="PIN (up to 6 digits)" maxlength="6" value="1234" required />
+                <input type="password" id="auth-officer-pin" class="form-input" placeholder="PIN (up to 6 digits)" maxlength="6" value="" required />
                 <div class="form-field-hint">Numbers only (0-9). Up to 6 digits maximum.</div>
               </div>
 
@@ -278,7 +278,7 @@
               </div>
 
               <!-- Priority Information Box -->
-              <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.65rem 0.85rem; margin-bottom: 1rem; font-size: 0.78rem; color: var(--text-muted);" data-i18n="priorityRule">
+              <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.65rem 0.85rem; margin-bottom: 0; font-size: 0.78rem; color: var(--text-muted);" data-i18n="priorityRule">
                 <strong style="color: var(--color-primary);">Priority Rule:</strong> Smallholder lots (&#8804; 100 Qtl) receive fast-track weighbridge allocation to ensure under-20 minute turnaround.
               </div>
 

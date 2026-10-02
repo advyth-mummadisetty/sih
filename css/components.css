@@ -811,4 +811,95 @@
   overflow-y: auto;
 }
 
+/* ==========================================================================
+   Live Mandi Operations Pipeline & Drag-and-Drop KanBan
+   ========================================================================== */
+.pipeline-col {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  min-height: 380px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.pipeline-col.drag-over {
+  border: 2px dashed var(--color-primary) !important;
+  background: var(--color-primary-soft) !important;
+  transform: scale(1.01);
+  box-shadow: 0 0 16px rgba(29, 133, 80, 0.18);
+}
+
+.pipeline-col-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 0.45rem;
+}
+
+.pipeline-card {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, border-color 0.15s ease;
+  position: relative;
+}
+
+.pipeline-card:hover {
+  border-color: var(--color-primary-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.pipeline-card:active {
+  cursor: grabbing;
+}
+
+.pipeline-card.dragging {
+  opacity: 0.4;
+  transform: scale(0.96) rotate(1deg);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary);
+}
+
+.pipeline-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-dim);
+  margin-right: 0.35rem;
+  cursor: grab;
+  font-size: 0.85rem;
+  letter-spacing: -1px;
+}
+
+.pipeline-discard-btn {
+  font-size: 0.72rem;
+  padding: 0.22rem 0.55rem;
+  color: var(--color-danger);
+  border: 1px solid rgba(220, 53, 69, 0.35);
+  background: rgba(220, 53, 69, 0.06);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all 0.15s ease;
+  font-weight: 600;
+}
+
+.pipeline-discard-btn:hover {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(220, 53, 69, 0.25);
+}
+
 
